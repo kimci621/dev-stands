@@ -29,7 +29,7 @@
           >
           <div class="relative">
             <i
-              class="pi pi-user absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+              class="pi pi-user absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-900"
             ></i>
             <InputText
               v-model="name"
@@ -46,7 +46,7 @@
           >
           <div class="relative">
             <i
-              class="pi pi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+              class="pi pi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-900"
             ></i>
             <InputText
               v-model="email"
@@ -64,7 +64,7 @@
           >
           <div class="relative">
             <i
-              class="pi pi-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+              class="pi pi-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-900"
             ></i>
             <InputText
               v-model="password"
@@ -135,6 +135,7 @@ const handleRegister = async () => {
     await register(name.value, email.value, password.value);
     router.replace("/");
   } catch (e) {
+    console.log(e);
     error.value = e?.data?.statusMessage || "Ошибка регистрации";
   } finally {
     loading.value = false;
@@ -145,7 +146,7 @@ const handleRegister = async () => {
 <style scoped>
 /* Кастомные стили для PrimeVue компонентов */
 :deep(.p-inputtext) {
-  @apply bg-white/50 backdrop-blur-sm text-neutral-800 placeholder-neutral-400;
+  @apply bg-white/50 backdrop-blur-sm text-neutral-900 placeholder-neutral-400;
 }
 
 :deep(.p-inputtext:focus) {

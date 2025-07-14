@@ -27,7 +27,7 @@
           >
           <div class="relative">
             <i
-              class="pi pi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+              class="pi pi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-900"
             ></i>
             <InputText
               v-model="email"
@@ -46,7 +46,7 @@
           >
           <div class="relative">
             <i
-              class="pi pi-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+              class="pi pi-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-900"
             ></i>
             <InputText
               v-model="password"
