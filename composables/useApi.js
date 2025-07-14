@@ -1,11 +1,7 @@
-// Композабл для работы с API сервера
+// Композабл для работы с Nuxt API routes
 export const useApi = () => {
-  // Автоматическое определение URL для разных сред
-  const baseUrl = process.client
-    ? window.location.hostname === "localhost"
-      ? "http://localhost:3001/api"
-      : "/api"
-    : "/api";
+  // Всегда используем встроенные Nuxt API routes
+  const baseUrl = "/api";
 
   /**
    * Выполняет GET запрос к API

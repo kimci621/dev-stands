@@ -30,11 +30,6 @@ export default defineNuxtConfig({
   // Настройка для Vercel
   nitro: {
     preset: "vercel",
-    devProxy: {
-      "/api": {
-        target: "http://localhost:3001/api",
-        changeOrigin: true,
-      },
-    },
+    // devProxy удалён, чтобы не было проксирования на несуществующий Express
   },
 });
