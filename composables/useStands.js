@@ -20,24 +20,44 @@ export const useStands = () => {
 
   /**
    * Загружает стенды с сервера
+   * @param {boolean} showLoading - показывать ли индикатор загрузки
    */
-  const fetchStands = async () => {
+  const fetchStands = async (showLoading = true) => {
     try {
-      isLoading.value = true;
+      if (showLoading) {
+        isLoading.value = true;
+      }
       error.value = null;
 
       const response = await getStands();
-      stands.value = response.stands;
-      lastReset.value = response.lastReset;
+
+      // Сравниваем данные перед обновлением, чтобы избежать лишних перерисовок
+      const newData = JSON.stringify(response.stands);
+      const currentData = JSON.stringify(stands.value);
+
+      if (newData !== currentData) {
+        stands.value = response.stands;
+      }
+
+      if (lastReset.value !== response.lastReset) {
+        lastReset.value = response.lastReset;
+      }
+
       isConnected.value = true;
 
-      console.log("Стенды загружены:", response);
+      if (showLoading) {
+        console.log("Стенды загружены:", response);
+      }
     } catch (err) {
       error.value = err.message;
       isConnected.value = false;
-      console.error("Ошибка при загрузке стендов:", err);
+      if (showLoading) {
+        console.error("Ошибка при загрузке стендов:", err);
+      }
     } finally {
-      isLoading.value = false;
+      if (showLoading) {
+        isLoading.value = false;
+      }
     }
   };
 
@@ -234,7 +254,8 @@ export const useStands = () => {
 
     pollingInterval = setInterval(async () => {
       try {
-        await fetchStands();
+        // Скрытое обновление без показа индикатора загрузки
+        await fetchStands(false);
       } catch (err) {
         console.warn("Ошибка при polling обновлении:", err);
       }

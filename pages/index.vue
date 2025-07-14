@@ -125,19 +125,23 @@
 
       <!-- Группы стендов -->
       <div v-else class="space-y-8">
-        <StandGroup
-          group-name="frontend"
-          :stands="stands.frontend"
-          @occupy="handleOccupy"
-          @release="handleRelease"
-        />
+        <Transition name="fade" mode="out-in">
+          <StandGroup
+            group-name="frontend"
+            :stands="stands.frontend"
+            @occupy="handleOccupy"
+            @release="handleRelease"
+          />
+        </Transition>
 
-        <StandGroup
-          group-name="backend"
-          :stands="stands.backend"
-          @occupy="handleOccupy"
-          @release="handleRelease"
-        />
+        <Transition name="fade" mode="out-in">
+          <StandGroup
+            group-name="backend"
+            :stands="stands.backend"
+            @occupy="handleOccupy"
+            @release="handleRelease"
+          />
+        </Transition>
       </div>
     </main>
 
@@ -193,9 +197,9 @@ const {
 const { userName, isUserNameSet } = useUser();
 const toast = useToast();
 
-// Вычисляемые свойства
-const userStands = getUserStands;
-const statistics = getStatistics;
+// Вычисляемые свойства с мемоизацией
+const userStands = computed(() => getUserStands.value);
+const statistics = computed(() => getStatistics.value);
 
 /**
  * Обрабатывает занятие стенда
@@ -352,5 +356,27 @@ h3 {
 /* Плавные переходы */
 * {
   transition: all 0.2s ease-in-out;
+}
+
+/* Анимации для плавного появления/исчезновения */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Предотвращение layout shift */
+.stand-group {
+  min-height: 200px;
+}
+
+/* Оптимизация перерисовки */
+.stat-card {
+  will-change: auto;
+  transform: translateZ(0);
 }
 </style>

@@ -215,9 +215,9 @@ const handleRelease = async () => {
     rounded-lg 
     bg-white 
     shadow-sm 
-    hover:shadow-md 
-    transition-all 
-    duration-200;
+    hover:shadow-md;
+  transition: all 0.3s ease, border-color 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .status-badge {
@@ -228,6 +228,7 @@ const handleRelease = async () => {
     font-medium 
     flex 
     items-center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Кастомные стили для кнопок */

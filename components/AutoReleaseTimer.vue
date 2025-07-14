@@ -76,7 +76,11 @@ let timeInterval = null;
 
 onMounted(() => {
   timeInterval = setInterval(() => {
-    currentTime.value = new Date();
+    const newTime = new Date();
+    // Обновляем только если секунды изменились
+    if (newTime.getSeconds() !== currentTime.value.getSeconds()) {
+      currentTime.value = newTime;
+    }
   }, 1000);
 });
 
@@ -271,6 +275,9 @@ watch(
 .timer-value {
   @apply text-xl font-mono font-bold;
   font-feature-settings: "tnum";
+  /* Предотвращение layout shift при изменении цифр */
+  min-width: 80px;
+  text-align: center;
 }
 
 .progress-container {

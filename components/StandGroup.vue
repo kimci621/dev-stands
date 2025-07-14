@@ -43,8 +43,8 @@
     <!-- Список стендов -->
     <div class="stands-grid">
       <StandCard
-        v-for="stand in stands"
-        :key="stand.id"
+        v-for="stand in memoizedStands"
+        :key="stand.key"
         :stand="stand"
         @occupy="handleOccupy"
         @release="handleRelease"
@@ -92,7 +92,7 @@ const groupTitle = computed(() => {
 });
 
 /**
- * Статистика стендов в группе
+ * Статистика стендов в группе (мемоизировано для предотвращения дёргания)
  */
 const totalStands = computed(() => props.stands.length);
 
@@ -107,6 +107,14 @@ const occupiedStands = computed(
 const occupancyPercentage = computed(() => {
   if (totalStands.value === 0) return 0;
   return Math.round((occupiedStands.value / totalStands.value) * 100);
+});
+
+// Мемоизированный список для предотвращения лишних перерисовок
+const memoizedStands = computed(() => {
+  return props.stands.map((stand) => ({
+    ...stand,
+    key: `${stand.id}-${stand.status}-${stand.occupiedBy || "free"}`,
+  }));
 });
 
 /**
