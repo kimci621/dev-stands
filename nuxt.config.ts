@@ -28,8 +28,8 @@ export default defineNuxtConfig({
   },
 
   // Настройка для Vercel
-  nitro: {
-    preset: "vercel",
-    // devProxy удалён, чтобы не было проксирования на несуществующий Express
-  },
+  // nitro: {
+  // preset: "vercel",
+  // devProxy удалён, чтобы не было проксирования на несуществующий Express
+  // },
 });
