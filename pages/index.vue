@@ -29,9 +29,6 @@
               Нет подключения к серверу
             </span>
           </div>
-          <p class="text-red-600 text-sm mt-1">
-            Проверьте, что сервер запущен на порту 3001
-          </p>
         </div>
       </div>
 
@@ -143,6 +140,8 @@
           />
         </Transition>
       </div>
+
+      {{ stands }}
     </main>
 
     <!-- Футер -->
@@ -178,6 +177,7 @@
 
 <script setup>
 import { useToast } from "primevue/usetoast";
+import { useRouter } from "vue-router";
 
 // Композаблы
 const {
@@ -194,8 +194,14 @@ const {
   initialize,
 } = useStands();
 
-const { userName, isUserNameSet } = useUser();
+const { user, isLoggedIn } = useUser();
+const router = useRouter();
 const toast = useToast();
+
+// Редирект на /login, если не залогинен
+if (!isLoggedIn.value) {
+  router.replace("/login");
+}
 
 // Вычисляемые свойства с мемоизацией
 const userStands = computed(() => getUserStands.value);
@@ -206,7 +212,7 @@ const statistics = computed(() => getStatistics.value);
  * @param {number} standId - ID стенда
  */
 const handleOccupy = async (standId) => {
-  if (!isUserNameSet.value) {
+  if (!isLoggedIn.value) {
     toast.add({
       severity: "warn",
       summary: "Внимание",

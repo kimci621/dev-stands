@@ -78,7 +78,7 @@ const props = defineProps({
 const emit = defineEmits(["occupy", "release"]);
 
 // Композаблы
-const { userName } = useUser();
+const { user } = useUser();
 const toast = useToast();
 
 // Локальное состояние
@@ -90,16 +90,19 @@ const isLoading = ref(false);
 const isFree = computed(() => props.stand.status === "free");
 const isOccupied = computed(() => props.stand.status === "occupied");
 const isOccupiedByCurrentUser = computed(
-  () => isOccupied.value && props.stand.occupiedBy === userName.value
+  () => isOccupied.value && props.stand.occupiedBy === user.value.name
 );
 const isOccupiedByOther = computed(
-  () => isOccupied.value && props.stand.occupiedBy !== userName.value
+  () =>
+    isOccupied.value &&
+    props.stand.occupiedBy &&
+    props.stand.occupiedBy !== user.value.name
 );
 
 /**
  * Вычисляемые свойства для действий
  */
-const canOccupy = computed(() => isFree.value && userName.value);
+const canOccupy = computed(() => isFree.value && !!user.value.name);
 const canRelease = computed(() => isOccupiedByCurrentUser.value);
 
 /**
@@ -164,7 +167,7 @@ const formatOccupiedTime = computed(() => {
  * Обрабатывает занятие стенда
  */
 const handleOccupy = async () => {
-  if (!userName.value) {
+  if (!user.value.name) {
     toast.add({
       severity: "warn",
       summary: "Внимание",

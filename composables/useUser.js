@@ -1,12 +1,12 @@
-// Композабл для управления пользователем
+// Композабл для управления пользователем и аутентификацией
 export const useUser = () => {
-  const userName = ref("");
-  const isUserNameSet = computed(() => userName.value.trim().length > 0);
+  const user = ref({ id: null, name: "", email: "" });
+  const isLoggedIn = computed(() => !!user.value && !!user.value.email);
 
   const STORAGE_KEY = "stand-manager-user";
 
   /**
-   * Загружает имя пользователя из localStorage
+   * Загружает пользователя из localStorage
    */
   const loadUserFromStorage = () => {
     if (process.client) {
@@ -14,7 +14,7 @@ export const useUser = () => {
       if (stored) {
         try {
           const userData = JSON.parse(stored);
-          userName.value = userData.userName || "";
+          user.value = userData;
         } catch (error) {
           console.warn("Ошибка при загрузке данных пользователя:", error);
           localStorage.removeItem(STORAGE_KEY);
@@ -24,94 +24,64 @@ export const useUser = () => {
   };
 
   /**
-   * Сохраняет имя пользователя в localStorage
+   * Сохраняет пользователя в localStorage
    */
   const saveUserToStorage = () => {
     if (process.client) {
-      const userData = {
-        userName: userName.value,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user.value));
     }
-  };
-
-  /**
-   * Устанавливает имя пользователя
-   * @param {string} name - новое имя пользователя
-   * @returns {boolean} успешность операции
-   */
-  const setUserName = (name) => {
-    const trimmedName = name.trim();
-
-    // Простая валидация
-    if (trimmedName.length < 2) {
-      throw new Error("Имя должно содержать минимум 2 символа");
-    }
-
-    if (trimmedName.length > 50) {
-      throw new Error("Имя не должно превышать 50 символов");
-    }
-
-    userName.value = trimmedName;
-    saveUserToStorage();
-
-    return true;
   };
 
   /**
    * Очищает данные пользователя
    */
   const clearUser = () => {
-    userName.value = "";
+    user.value = { id: null, name: "", email: "" };
     if (process.client) {
       localStorage.removeItem(STORAGE_KEY);
     }
   };
 
   /**
-   * Проверяет валидность имени пользователя
-   * @param {string} name - имя для проверки
-   * @returns {Object} результат валидации
+   * Регистрация пользователя через API
    */
-  const validateUserName = (name) => {
-    const trimmedName = name.trim();
+  const register = async (name, email, password) => {
+    const { post } = useApi();
+    const res = await post("/register", { name, email, password });
+    user.value = res;
+    saveUserToStorage();
+    return res;
+  };
 
-    if (trimmedName.length === 0) {
-      return { valid: false, message: "Имя не может быть пустым" };
-    }
+  /**
+   * Вход пользователя через API
+   */
+  const login = async (email, password) => {
+    const { post } = useApi();
+    const res = await post("/login", { email, password });
+    user.value = res;
+    saveUserToStorage();
+    return res;
+  };
 
-    if (trimmedName.length < 2) {
-      return {
-        valid: false,
-        message: "Имя должно содержать минимум 2 символа",
-      };
-    }
-
-    if (trimmedName.length > 50) {
-      return { valid: false, message: "Имя не должно превышать 50 символов" };
-    }
-
-    // Проверка на спецсимволы (разрешены только буквы, цифры, пробелы, дефисы)
-    const validChars = /^[a-zA-Zа-яА-Я0-9\s\-]+$/;
-    if (!validChars.test(trimmedName)) {
-      return {
-        valid: false,
-        message: "Имя может содержать только буквы, цифры, пробелы и дефисы",
-      };
-    }
-
-    return { valid: true, message: "" };
+  /**
+   * Выход пользователя
+   */
+  const logout = () => {
+    clearUser();
   };
 
   // Инициализация при создании композабла
   loadUserFromStorage();
 
   return {
-    userName: readonly(userName),
-    isUserNameSet,
-    setUserName,
+    user: readonly(user),
+    isLoggedIn,
+    register,
+    login,
+    logout,
     clearUser,
-    validateUserName,
     loadUserFromStorage,
+    saveUserToStorage,
   };
 };

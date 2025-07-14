@@ -4,16 +4,16 @@
       {
         "id": 1,
         "name": "Frontend Stand 1",
-        "status": "occupied",
-        "occupiedBy": "Амир",
-        "occupiedAt": 1752508060904
+        "status": "free",
+        "occupiedBy": null,
+        "occupiedAt": null
       },
       {
         "id": 2,
         "name": "Frontend Stand 2",
-        "status": "occupied",
-        "occupiedBy": "Амир",
-        "occupiedAt": 1752508084845
+        "status": "free",
+        "occupiedBy": null,
+        "occupiedAt": null
       },
       {
         "id": 3,
@@ -47,5 +47,5 @@
       }
     ]
   },
-  "lastReset": 0
+  "lastReset": 1752508781405
 }

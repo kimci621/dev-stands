@@ -1,7 +1,7 @@
 // Композабл для управления стендами
 export const useStands = () => {
   const { getStands, updateStands, resetStands } = useApi();
-  const { userName } = useUser();
+  const { user } = useUser();
 
   // Реактивное состояние
   const stands = ref({
@@ -98,7 +98,7 @@ export const useStands = () => {
    * @returns {Promise<boolean>} успешность операции
    */
   const occupyStand = async (standId) => {
-    if (!userName.value) {
+    if (!user.value.name) {
       throw new Error("Необходимо указать имя пользователя");
     }
 
@@ -115,13 +115,13 @@ export const useStands = () => {
 
     // Обновляем локально
     stand.status = "occupied";
-    stand.occupiedBy = userName.value;
+    stand.occupiedBy = user.value.name;
     stand.occupiedAt = Date.now();
 
     // Сохраняем на сервер
     await saveStands();
 
-    console.log(`Стенд ${stand.name} занят пользователем ${userName.value}`);
+    console.log(`Стенд ${stand.name} занят пользователем ${user.value.name}`);
     return true;
   };
 
@@ -143,7 +143,7 @@ export const useStands = () => {
     }
 
     // Проверяем, может ли пользователь освободить стенд
-    if (stand.occupiedBy !== userName.value) {
+    if (stand.occupiedBy !== user.value.name) {
       throw new Error(`Только ${stand.occupiedBy} может освободить этот стенд`);
     }
 
@@ -187,7 +187,7 @@ export const useStands = () => {
       group.forEach((stand) => {
         if (
           stand.status === "occupied" &&
-          stand.occupiedBy === userName.value
+          stand.occupiedBy === user.value.name
         ) {
           userStands.push(stand);
         }
