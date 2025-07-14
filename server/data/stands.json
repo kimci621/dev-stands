@@ -1,0 +1,51 @@
+{
+  "stands": {
+    "frontend": [
+      {
+        "id": 1,
+        "name": "Frontend Stand 1",
+        "status": "occupied",
+        "occupiedBy": "Амир",
+        "occupiedAt": 1752508060904
+      },
+      {
+        "id": 2,
+        "name": "Frontend Stand 2",
+        "status": "occupied",
+        "occupiedBy": "Амир",
+        "occupiedAt": 1752508084845
+      },
+      {
+        "id": 3,
+        "name": "Frontend Stand 3",
+        "status": "free",
+        "occupiedBy": null,
+        "occupiedAt": null
+      }
+    ],
+    "backend": [
+      {
+        "id": 4,
+        "name": "Backend Stand 1",
+        "status": "free",
+        "occupiedBy": null,
+        "occupiedAt": null
+      },
+      {
+        "id": 5,
+        "name": "Backend Stand 2",
+        "status": "free",
+        "occupiedBy": null,
+        "occupiedAt": null
+      },
+      {
+        "id": 6,
+        "name": "Backend Stand 3",
+        "status": "free",
+        "occupiedBy": null,
+        "occupiedAt": null
+      }
+    ]
+  },
+  "lastReset": 0
+}

@@ -1,99 +1,34 @@
-// API route для Vercel/Nuxt - GET /api/stands
+// API route для Nuxt - GET /api/stands
+// Работа с файловой JSON-базой
 
-// Используем глобальное хранилище для serverless функций
-if (!globalThis.standsData) {
-  globalThis.standsData = {
-    stands: {
-      frontend: [
-        {
-          id: 1,
-          name: "Frontend Stand 1",
-          status: "free",
-          occupiedBy: null,
-          occupiedAt: null,
-        },
-        {
-          id: 2,
-          name: "Frontend Stand 2",
-          status: "free",
-          occupiedBy: null,
-          occupiedAt: null,
-        },
-        {
-          id: 3,
-          name: "Frontend Stand 3",
-          status: "free",
-          occupiedBy: null,
-          occupiedAt: null,
-        },
-      ],
-      backend: [
-        {
-          id: 4,
-          name: "Backend Stand 1",
-          status: "free",
-          occupiedBy: null,
-          occupiedAt: null,
-        },
-        {
-          id: 5,
-          name: "Backend Stand 2",
-          status: "free",
-          occupiedBy: null,
-          occupiedAt: null,
-        },
-        {
-          id: 6,
-          name: "Backend Stand 3",
-          status: "free",
-          occupiedBy: null,
-          occupiedAt: null,
-        },
-      ],
-    },
-    lastReset: Date.now(),
-  };
-}
+import { promises as fs } from "fs";
+import { join } from "path";
+
+// Путь к файлу с "базой данных"
+const dataPath = join(process.cwd(), "server/data/stands.json");
 
 /**
- * Проверка необходимости автоматического сброса
+ * Читает данные стендов из файла
+ * @returns {Promise<Object>} данные стендов
  */
-function checkAutoReset() {
-  const now = new Date();
-  const lastResetDate = new Date(globalThis.standsData.lastReset);
-
-  // Если прошло 24 часа или время сейчас 00:00
-  if (
-    now.getDate() !== lastResetDate.getDate() ||
-    (now.getHours() === 0 && now.getMinutes() === 0)
-  ) {
-    // Сброс всех стендов
-    Object.values(globalThis.standsData.stands).forEach((group) => {
-      group.forEach((stand) => {
-        stand.status = "free";
-        stand.occupiedBy = null;
-        stand.occupiedAt = null;
-      });
-    });
-    globalThis.standsData.lastReset = Date.now();
-    console.log("Автоматический сброс стендов выполнен");
-  }
+async function readStandsData() {
+  const raw = await fs.readFile(dataPath, "utf-8");
+  return JSON.parse(raw);
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    checkAutoReset(); // Проверяем необходимость сброса
-
+    const data = await readStandsData();
     return {
-      stands: globalThis.standsData.stands,
-      lastReset: globalThis.standsData.lastReset,
+      stands: data.stands,
+      lastReset: data.lastReset,
       timestamp: Date.now(),
     };
   } catch (error) {
-    console.error("Ошибка в GET /api/stands:", error);
+    console.error("Ошибка чтения stands.json:", error);
     throw createError({
       statusCode: 500,
-      statusMessage: "Внутренняя ошибка сервера",
+      statusMessage: "Ошибка чтения базы данных",
     });
   }
 });
