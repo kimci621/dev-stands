@@ -1,37 +1,39 @@
 <template>
   <div class="stand-card" :class="cardClasses">
-    <div class="flex items-center justify-between p-4">
+    <div class="flex items-center justify-between p-6">
       <!-- Информация о стенде -->
       <div class="flex-1">
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">
+        <h3 class="text-xl font-bold text-neutral-800 mb-3">
           {{ stand.name }}
         </h3>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3 mb-3">
           <span class="status-badge" :class="statusClasses">
-            <i :class="statusIcon" class="mr-1"></i>
+            <i :class="statusIcon" class="mr-2"></i>
             {{ statusText }}
           </span>
 
           <!-- Время занятия -->
           <span
             v-if="stand.occupiedAt && stand.status === 'occupied'"
-            class="text-xs text-gray-500"
+            class="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full"
           >
             {{ formatOccupiedTime }}
           </span>
         </div>
 
         <!-- Пользователь, занявший стенд -->
-        <div v-if="stand.occupiedBy" class="mt-2">
-          <span class="text-sm text-gray-600">
-            Занят: <strong>{{ stand.occupiedBy }}</strong>
+        <div v-if="stand.occupiedBy" class="mt-3">
+          <span class="text-sm text-neutral-600 flex items-center gap-2">
+            <i class="pi pi-user text-primary-500"></i>
+            Занят:
+            <strong class="text-neutral-800">{{ stand.occupiedBy }}</strong>
           </span>
         </div>
       </div>
 
       <!-- Кнопки действий -->
-      <div class="flex flex-col gap-2 ml-4">
+      <div class="flex flex-col gap-3 ml-6">
         <Button
           v-if="canOccupy"
           @click="handleOccupy"
@@ -109,17 +111,21 @@ const canRelease = computed(() => isOccupiedByCurrentUser.value);
  * Стили карточки в зависимости от статуса
  */
 const cardClasses = computed(() => ({
-  "border-stand-free bg-green-50": isFree.value,
-  "border-stand-occupied bg-red-50": isOccupied.value,
-  "ring-2 ring-blue-300": isOccupiedByCurrentUser.value,
+  "border-stand-free-200 bg-gradient-to-br from-stand-free-50 to-stand-free-100":
+    isFree.value,
+  "border-stand-occupied-200 bg-gradient-to-br from-stand-occupied-50 to-stand-occupied-100":
+    isOccupied.value,
+  "ring-2 ring-primary-300 shadow-medium": isOccupiedByCurrentUser.value,
 }));
 
 /**
  * Стили статуса
  */
 const statusClasses = computed(() => ({
-  "bg-stand-free text-white": isFree.value,
-  "bg-stand-occupied text-white": isOccupied.value,
+  "bg-gradient-to-r from-stand-free-500 to-stand-free-600 text-white shadow-soft":
+    isFree.value,
+  "bg-gradient-to-r from-stand-occupied-500 to-stand-occupied-600 text-white shadow-soft":
+    isOccupied.value,
 }));
 
 /**
@@ -215,58 +221,61 @@ const handleRelease = async () => {
 <style scoped>
 .stand-card {
   @apply border-2 
-    rounded-lg 
+    rounded-2xl 
     bg-white 
-    shadow-sm 
-    hover:shadow-md;
-  transition: all 0.3s ease, border-color 0.2s ease, background-color 0.2s ease,
-    box-shadow 0.2s ease;
+    shadow-soft 
+    hover:shadow-medium
+    transition-all duration-300 ease-out;
+}
+
+.stand-card:hover {
+  transform: translateY(-2px);
 }
 
 .status-badge {
-  @apply px-2 
-    py-1 
+  @apply px-4 
+    py-2 
     rounded-full 
-    text-xs 
-    font-medium 
+    text-sm 
+    font-semibold 
     flex 
-    items-center;
-  transition: background-color 0.3s ease, color 0.3s ease;
+    items-center
+    transition-all duration-300;
 }
 
 /* Кастомные стили для кнопок */
 :deep(.p-button-sm) {
-  @apply px-3 py-1 text-sm;
+  @apply px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300;
 }
 
 :deep(.p-button-success) {
-  @apply bg-stand-free border-stand-free;
+  @apply bg-gradient-to-r from-stand-free-500 to-stand-free-600 border-stand-free-500 text-white shadow-soft;
 }
 
 :deep(.p-button-success:hover) {
-  @apply bg-green-600 border-green-600;
+  @apply from-stand-free-600 to-stand-free-700 border-stand-free-600 shadow-medium transform scale-105;
 }
 
 :deep(.p-button-danger) {
-  @apply bg-stand-occupied border-stand-occupied;
+  @apply bg-gradient-to-r from-stand-occupied-500 to-stand-occupied-600 border-stand-occupied-500 text-white shadow-soft;
 }
 
 :deep(.p-button-danger:hover) {
-  @apply bg-red-600 border-red-600;
+  @apply from-stand-occupied-600 to-stand-occupied-700 border-stand-occupied-600 shadow-medium transform scale-105;
 }
 
 :deep(.p-button-secondary) {
-  @apply bg-gray-500 border-gray-500;
-}
-
-/* Анимация при наведении */
-.stand-card:hover {
-  transform: translateY(-1px);
+  @apply bg-gradient-to-r from-neutral-400 to-neutral-500 border-neutral-400 text-white shadow-soft;
 }
 
 /* Специальное выделение для стендов текущего пользователя */
 .stand-card.ring-2 {
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1),
-    0 2px 4px -1px rgba(59, 130, 246, 0.06), 0 0 0 3px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.15),
+    0 4px 10px -2px rgba(59, 130, 246, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Анимация при наведении */
+.stand-card:hover .status-badge {
+  transform: scale(1.05);
 }
 </style>

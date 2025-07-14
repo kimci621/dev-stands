@@ -1,13 +1,21 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100">
     <!-- Заголовок приложения -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <header
+      class="bg-white/80 backdrop-blur-sm shadow-soft border-b border-neutral-200/50 sticky top-0 z-50"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Логотип и название -->
           <div class="flex items-center gap-3">
-            <i class="pi pi-server text-2xl text-blue-600"></i>
-            <h1 class="text-2xl font-bold text-gray-800">
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-medium"
+            >
+              <i class="pi pi-server text-xl text-white"></i>
+            </div>
+            <h1
+              class="text-2xl font-bold bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent"
+            >
               Управление стендами
             </h1>
           </div>
@@ -21,19 +29,32 @@
     <!-- Основной контент -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Статус подключения -->
-      <div v-if="!isConnected" class="mb-6">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-exclamation-triangle text-red-500"></i>
-            <span class="text-red-700 font-medium">
-              Нет подключения к серверу
-            </span>
+      <div v-if="!isConnected" class="mb-8 animate-fade-in">
+        <div
+          class="bg-stand-occupied-50 border border-stand-occupied-200 rounded-2xl p-6 shadow-soft"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-stand-occupied-100 rounded-full flex items-center justify-center"
+            >
+              <i
+                class="pi pi-exclamation-triangle text-stand-occupied-600 text-lg"
+              ></i>
+            </div>
+            <div>
+              <span class="text-stand-occupied-800 font-semibold text-lg">
+                Нет подключения к серверу
+              </span>
+              <p class="text-stand-occupied-600 text-sm mt-1">
+                Проверьте, что сервер запущен
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Таймер автосброса -->
-      <div class="mb-8">
+      <div class="mb-8 animate-slide-up">
         <AutoReleaseTimer
           :last-reset="lastReset"
           :show-reset-button="true"
@@ -42,51 +63,75 @@
       </div>
 
       <!-- Общая статистика -->
-      <div class="mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Общая статистика</h2>
+      <div class="mb-10 animate-slide-up">
+        <div
+          class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft border border-white/50 p-8"
+        >
+          <h2
+            class="text-2xl font-bold text-neutral-800 mb-6 flex items-center gap-3"
+          >
+            <div
+              class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center"
+            >
+              <i class="pi pi-chart-bar text-white text-sm"></i>
+            </div>
+            Общая статистика
+          </h2>
 
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="stat-card">
-              <div class="stat-value text-blue-600">{{ statistics.total }}</div>
-              <div class="stat-label">Всего стендов</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div
+              class="stat-card bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200"
+            >
+              <div class="stat-value text-primary-700">
+                {{ statistics.total }}
+              </div>
+              <div class="stat-label text-primary-600">Всего стендов</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-value text-stand-free">
+            <div
+              class="stat-card bg-gradient-to-br from-stand-free-50 to-stand-free-100 border border-stand-free-200"
+            >
+              <div class="stat-value text-stand-free-700">
                 {{ statistics.free }}
               </div>
-              <div class="stat-label">Свободно</div>
+              <div class="stat-label text-stand-free-600">Свободно</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-value text-stand-occupied">
+            <div
+              class="stat-card bg-gradient-to-br from-stand-occupied-50 to-stand-occupied-100 border border-stand-occupied-200"
+            >
+              <div class="stat-value text-stand-occupied-700">
                 {{ statistics.occupied }}
               </div>
-              <div class="stat-label">Занято</div>
+              <div class="stat-label text-stand-occupied-600">Занято</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-value text-purple-600">
+            <div
+              class="stat-card bg-gradient-to-br from-neutral-50 to-neutral-100 border border-neutral-200"
+            >
+              <div class="stat-value text-neutral-700">
                 {{ statistics.occupancyRate }}%
               </div>
-              <div class="stat-label">Загрузка</div>
+              <div class="stat-label text-neutral-600">Загрузка</div>
             </div>
           </div>
 
           <!-- Стенды пользователя -->
           <div
             v-if="userStands.length > 0"
-            class="mt-6 pt-6 border-t border-gray-200"
+            class="mt-8 pt-8 border-t border-neutral-200/50"
           >
-            <h3 class="text-lg font-semibold text-gray-800 mb-3">
+            <h3
+              class="text-xl font-semibold text-neutral-800 mb-4 flex items-center gap-2"
+            >
+              <i class="pi pi-user text-primary-600"></i>
               Ваши стенды ({{ userStands.length }})
             </h3>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-3">
               <span
                 v-for="stand in userStands"
                 :key="stand.id"
-                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full text-sm font-medium shadow-soft"
               >
                 {{ stand.name }}
               </span>
@@ -96,32 +141,46 @@
       </div>
 
       <!-- Загрузка -->
-      <div v-if="isLoading" class="flex justify-center py-12">
-        <div class="flex items-center gap-3">
-          <i class="pi pi-spin pi-spinner text-2xl text-blue-600"></i>
-          <span class="text-lg text-gray-600">Загрузка стендов...</span>
+      <div v-if="isLoading" class="flex justify-center py-16 animate-fade-in">
+        <div
+          class="flex items-center gap-4 bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-soft"
+        >
+          <div
+            class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"
+          ></div>
+          <span class="text-lg text-neutral-700 font-medium"
+            >Загрузка стендов...</span
+          >
         </div>
       </div>
 
       <!-- Ошибка -->
-      <div v-else-if="error" class="mb-6">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div class="flex items-center gap-2 mb-2">
-            <i class="pi pi-times-circle text-red-500"></i>
-            <span class="text-red-700 font-medium">Ошибка загрузки</span>
+      <div v-else-if="error" class="mb-8 animate-fade-in">
+        <div
+          class="bg-stand-occupied-50 border border-stand-occupied-200 rounded-2xl p-6 shadow-soft"
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-10 h-10 bg-stand-occupied-100 rounded-full flex items-center justify-center"
+            >
+              <i class="pi pi-times-circle text-stand-occupied-600 text-lg"></i>
+            </div>
+            <span class="text-stand-occupied-800 font-semibold text-lg"
+              >Ошибка загрузки</span
+            >
           </div>
-          <p class="text-red-600 text-sm">{{ error }}</p>
+          <p class="text-stand-occupied-600 text-sm mb-4">{{ error }}</p>
           <Button
             @click="initialize"
             icon="pi pi-refresh"
             label="Попробовать снова"
-            class="p-button-sm mt-3"
+            class="p-button-sm"
           />
         </div>
       </div>
 
       <!-- Группы стендов -->
-      <div v-else class="space-y-8">
+      <div v-else class="space-y-10">
         <Transition name="fade" mode="out-in">
           <StandGroup
             group-name="frontend"
@@ -140,31 +199,38 @@
           />
         </Transition>
       </div>
-
-      {{ stands }}
     </main>
 
     <!-- Футер -->
-    <footer class="bg-white border-t border-gray-200 mt-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <footer
+      class="bg-white/80 backdrop-blur-sm border-t border-neutral-200/50 mt-20"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex items-center justify-between">
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-neutral-600">
             Система управления стендами разработки
           </p>
 
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-6">
             <span
-              class="flex items-center gap-1 text-xs"
-              :class="isConnected ? 'text-green-600' : 'text-red-600'"
+              class="flex items-center gap-2 text-sm font-medium"
+              :class="
+                isConnected ? 'text-stand-free-600' : 'text-stand-occupied-600'
+              "
             >
-              <i
-                class="pi"
-                :class="isConnected ? 'pi-check-circle' : 'pi-times-circle'"
-              ></i>
+              <div
+                class="w-2 h-2 rounded-full"
+                :class="
+                  isConnected ? 'bg-stand-free-500' : 'bg-stand-occupied-500'
+                "
+              ></div>
               {{ isConnected ? "Подключено" : "Отключено" }}
             </span>
 
-            <span class="text-xs text-gray-500"> v1.0.0 </span>
+            <span
+              class="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full"
+              >v1.0.0</span
+            >
           </div>
         </div>
       </div>
@@ -312,15 +378,15 @@ useHead({
 
 <style scoped>
 .stat-card {
-  @apply text-center;
+  @apply text-center p-6 rounded-2xl transition-all duration-300 hover:shadow-medium hover:scale-105;
 }
 
 .stat-value {
-  @apply text-3xl font-bold mb-1;
+  @apply text-4xl font-bold mb-2;
 }
 
 .stat-label {
-  @apply text-sm text-gray-600;
+  @apply text-sm font-medium;
 }
 
 /* Анимации для загрузки */
@@ -333,14 +399,14 @@ useHead({
   }
 }
 
-.pi-spin {
+.animate-spin {
   animation: spin 1s linear infinite;
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
   .stat-value {
-    @apply text-2xl;
+    @apply text-3xl;
   }
 
   .grid-cols-2 {

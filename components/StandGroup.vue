@@ -1,39 +1,52 @@
 <template>
-  <div class="stand-group">
+  <div class="stand-group animate-slide-up">
     <!-- Заголовок группы -->
     <div class="group-header">
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">
+      <h2
+        class="text-3xl font-bold text-neutral-800 mb-4 flex items-center gap-3"
+      >
+        <div
+          class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-medium"
+        >
+          <i class="pi pi-server text-white text-lg"></i>
+        </div>
         {{ groupTitle }}
       </h2>
 
       <!-- Статистика группы -->
-      <div class="flex items-center gap-4 mb-4">
-        <div class="stat-item">
+      <div class="flex items-center gap-6 mb-6">
+        <div
+          class="stat-item bg-white/70 backdrop-blur-sm rounded-xl p-3 shadow-soft"
+        >
           <span class="stat-label">Всего:</span>
-          <span class="stat-value">{{ totalStands }}</span>
+          <span class="stat-value text-primary-700">{{ totalStands }}</span>
         </div>
 
-        <div class="stat-item">
+        <div
+          class="stat-item bg-white/70 backdrop-blur-sm rounded-xl p-3 shadow-soft"
+        >
           <span class="stat-label">Свободно:</span>
-          <span class="stat-value text-stand-free">{{ freeStands }}</span>
+          <span class="stat-value text-stand-free-700">{{ freeStands }}</span>
         </div>
 
-        <div class="stat-item">
+        <div
+          class="stat-item bg-white/70 backdrop-blur-sm rounded-xl p-3 shadow-soft"
+        >
           <span class="stat-label">Занято:</span>
-          <span class="stat-value text-stand-occupied">{{
+          <span class="stat-value text-stand-occupied-700">{{
             occupiedStands
           }}</span>
         </div>
 
         <!-- Прогресс-бар заполненности -->
-        <div class="flex-1 ml-4">
-          <div class="w-full bg-gray-200 rounded-full h-2">
+        <div class="flex-1 ml-6">
+          <div class="w-full bg-neutral-200 rounded-full h-3 shadow-inner">
             <div
-              class="bg-stand-occupied h-2 rounded-full transition-all duration-300"
+              class="bg-gradient-to-r from-stand-occupied-500 to-stand-occupied-600 h-3 rounded-full transition-all duration-500 shadow-soft"
               :style="{ width: `${occupancyPercentage}%` }"
             ></div>
           </div>
-          <span class="text-xs text-gray-500 mt-1">
+          <span class="text-sm text-neutral-600 mt-2 font-medium">
             {{ occupancyPercentage }}% занятости
           </span>
         </div>
@@ -53,8 +66,15 @@
 
     <!-- Пустое состояние -->
     <div v-if="stands.length === 0" class="empty-state">
-      <i class="pi pi-server text-4xl text-gray-400 mb-4"></i>
-      <p class="text-gray-500 text-lg">Стенды отсутствуют</p>
+      <div
+        class="w-20 h-20 bg-gradient-to-br from-neutral-200 to-neutral-300 rounded-full flex items-center justify-center mb-6"
+      >
+        <i class="pi pi-server text-4xl text-neutral-400"></i>
+      </div>
+      <p class="text-neutral-500 text-xl font-medium">Стенды отсутствуют</p>
+      <p class="text-neutral-400 text-sm mt-2">
+        Добавьте стенды для начала работы
+      </p>
     </div>
   </div>
 </template>
@@ -170,28 +190,28 @@ const handleRelease = async (standId) => {
 
 <style scoped>
 .stand-group {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+  @apply bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft border border-white/50 p-8;
 }
 
 .group-header {
-  @apply border-b border-gray-100 pb-4 mb-6;
+  @apply border-b border-neutral-200/50 pb-6 mb-8;
 }
 
 .stat-item {
-  @apply flex items-center gap-1;
+  @apply flex items-center gap-2 transition-all duration-300 hover:shadow-medium hover:scale-105;
 }
 
 .stat-label {
-  @apply text-sm text-gray-600;
+  @apply text-sm text-neutral-600 font-medium;
 }
 
 .stat-value {
-  @apply text-lg font-semibold;
+  @apply text-xl font-bold;
 }
 
 .stands-grid {
-  @apply grid gap-4;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  @apply grid gap-6;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 }
 
 .empty-state {
@@ -199,52 +219,42 @@ const handleRelease = async (standId) => {
     flex-col 
     items-center 
     justify-center 
-    py-12 
+    py-16 
     text-center;
 }
 
-/* Адаптивная сетка для мобильных устройств */
-@media (max-width: 640px) {
+/* Адаптивность */
+@media (max-width: 768px) {
   .stands-grid {
-    @apply grid-cols-1;
+    grid-template-columns: 1fr;
   }
 
   .group-header {
-    @apply space-y-2;
+    @apply pb-4 mb-6;
   }
 
-  .group-header .flex {
-    @apply flex-wrap gap-2;
-  }
-}
-
-/* Анимация для прогресс-бара */
-.bg-stand-occupied {
-  transition: width 0.3s ease-in-out;
-}
-
-/* Улучшенная видимость статистики */
-.stat-item:not(:last-child)::after {
-  content: "•";
-  @apply text-gray-300 ml-4;
-}
-
-/* Стили для тёмной темы (если потребуется в будущем) */
-@media (prefers-color-scheme: dark) {
-  .stand-group {
-    @apply bg-gray-800 border-gray-700;
-  }
-
-  .group-header {
-    @apply border-gray-700;
-  }
-
-  .stat-label {
-    @apply text-gray-400;
+  .stat-item {
+    @apply p-2;
   }
 
   .stat-value {
-    @apply text-gray-200;
+    @apply text-lg;
+  }
+}
+
+/* Анимации */
+.stand-group {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
