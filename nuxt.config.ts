@@ -27,8 +27,9 @@ export default defineNuxtConfig({
     dirs: ["composables"],
   },
 
-  // Настройка для корректной работы с API
+  // Настройка для Vercel
   nitro: {
+    preset: "vercel",
     devProxy: {
       "/api": {
         target: "http://localhost:3001/api",

@@ -1,6 +1,11 @@
 // Композабл для работы с API сервера
 export const useApi = () => {
-  const baseUrl = "http://localhost:3001/api";
+  // Автоматическое определение URL для разных сред
+  const baseUrl = process.client
+    ? window.location.hostname === "localhost"
+      ? "http://localhost:3001/api"
+      : "/api"
+    : "/api";
 
   /**
    * Выполняет GET запрос к API
