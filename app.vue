@@ -112,6 +112,22 @@ textarea:focus-visible {
   border-radius: 12px 12px 0 0;
 }
 
+/* Глобальные стили для инпутов */
+.p-inputtext {
+  color: #1f2937 !important;
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(8px);
+}
+
+.p-inputtext:focus {
+  background-color: white !important;
+  color: #111827 !important;
+}
+
+.p-inputtext::placeholder {
+  color: #9ca3af !important;
+}
+
 /* Анимации появления */
 .fade-enter-active,
 .fade-leave-active {
@@ -168,6 +184,21 @@ textarea:focus-visible {
 
   ::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
+  }
+
+  /* Инпуты в темной теме */
+  .p-inputtext {
+    color: #f9fafb !important;
+    background-color: rgba(31, 41, 55, 0.5) !important;
+  }
+
+  .p-inputtext:focus {
+    background-color: #374151 !important;
+    color: #f9fafb !important;
+  }
+
+  .p-inputtext::placeholder {
+    color: #6b7280 !important;
   }
 }
 

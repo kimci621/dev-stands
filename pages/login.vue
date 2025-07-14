@@ -126,11 +126,11 @@ const handleLogin = async () => {
 <style scoped>
 /* Кастомные стили для PrimeVue компонентов */
 :deep(.p-inputtext) {
-  @apply bg-white/50 backdrop-blur-sm;
+  @apply bg-white/50 backdrop-blur-sm text-neutral-800 placeholder-neutral-400;
 }
 
 :deep(.p-inputtext:focus) {
-  @apply bg-white;
+  @apply bg-white text-neutral-900;
 }
 
 :deep(.p-button) {
