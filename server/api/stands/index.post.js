@@ -38,6 +38,20 @@ export default defineEventHandler(async (event) => {
         occupied_by: null,
         occupied_at: null,
       };
+    } else if (action === "set_task_url") {
+      if (!body.task_url || typeof body.task_url !== "string") {
+        throw createError({
+          statusCode: 400,
+          statusMessage: "task_url обязателен и должен быть строкой",
+        });
+      }
+      updates = {
+        task_url: body.task_url,
+      };
+    } else if (action === "unset_task_url") {
+      updates = {
+        task_url: null,
+      };
     } else {
       throw createError({
         statusCode: 400,

@@ -103,6 +103,8 @@
           :stand="stand"
           @occupy="handleOccupy"
           @release="handleRelease"
+          @task-url-updated="handleTaskUrlChanged"
+          @task-url-removed="handleTaskUrlChanged"
         />
       </TransitionGroup>
     </div>
@@ -250,6 +252,12 @@ const handleRelease = async (standId) => {
     });
   }
 };
+
+// Обработка обновления/удаления ссылки на задачу
+function handleTaskUrlChanged() {
+  // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
+  emit("refresh-stands");
+}
 </script>
 
 <style scoped>

@@ -187,6 +187,7 @@
             :stands="stands.frontend"
             @occupy="handleOccupy"
             @release="handleRelease"
+            @refresh-stands="refreshStands"
           />
         </Transition>
 
@@ -196,6 +197,7 @@
             :stands="stands.backend"
             @occupy="handleOccupy"
             @release="handleRelease"
+            @refresh-stands="refreshStands"
           />
         </Transition>
       </div>
@@ -353,6 +355,12 @@ const handleManualReset = async () => {
     });
   }
 };
+
+// Обновление списка стендов после изменения ссылки на задачу
+const { fetchStands } = useStands();
+async function refreshStands() {
+  await fetchStands();
+}
 
 // Инициализация при монтировании компонента
 onMounted(async () => {

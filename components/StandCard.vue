@@ -6,13 +6,11 @@
         <h3 class="text-xl font-bold text-neutral-800 mb-3">
           {{ stand.name }}
         </h3>
-
         <div class="flex items-center gap-3 mb-3">
           <span class="status-badge" :class="statusClasses">
             <i :class="statusIcon" class="mr-2"></i>
             {{ statusText }}
           </span>
-
           <!-- Время занятия -->
           <span
             v-if="stand.occupiedAt && stand.status === 'occupied'"
@@ -21,7 +19,6 @@
             {{ formatOccupiedTime }}
           </span>
         </div>
-
         <!-- Пользователь, занявший стенд -->
         <div v-if="stand.occupiedBy" class="mt-3">
           <span class="text-sm text-neutral-600 flex items-center gap-2">
@@ -30,8 +27,35 @@
             <strong class="text-neutral-800">{{ stand.occupiedBy }}</strong>
           </span>
         </div>
+        <!-- Ссылка на задачу -->
+        <div class="mt-4">
+          <Button
+            v-if="!stand.task_url"
+            label="Указать ссылку на задачу"
+            icon="pi pi-link"
+            class="p-button-sm p-button-outlined text-primary-600 border-primary-300 hover:bg-primary-50"
+            @click="openTaskModal"
+          />
+          <div v-else class="flex items-center gap-2 mt-2">
+            <a
+              :href="stand.task_url"
+              target="_blank"
+              class="text-primary-600 underline break-all"
+              >Ссылка на задачу</a
+            >
+            <Button
+              icon="pi pi-pencil"
+              class="p-button-text p-0"
+              @click="openTaskModal"
+            />
+            <Button
+              icon="pi pi-times"
+              class="p-button-text p-0 text-red-500"
+              @click="unsetTaskUrl"
+            />
+          </div>
+        </div>
       </div>
-
       <!-- Кнопки действий -->
       <div class="flex flex-col gap-3 ml-6">
         <Button
@@ -42,7 +66,6 @@
           label="Занять"
           class="p-button-success p-button-sm"
         />
-
         <Button
           v-if="canRelease"
           @click="handleRelease"
@@ -51,7 +74,6 @@
           label="Освободить"
           class="p-button-danger p-button-sm"
         />
-
         <!-- Информационная кнопка для стендов, занятых другими -->
         <Button
           v-if="isOccupiedByOther"
@@ -62,11 +84,52 @@
         />
       </div>
     </div>
+    <!-- Модалка для ввода/редактирования ссылки на задачу -->
+    <Dialog
+      v-model:visible="showTaskModal"
+      header="Ссылка на задачу"
+      :modal="true"
+      :closable="true"
+      :style="{ width: '400px' }"
+    >
+      <form @submit.prevent="submitTaskUrl">
+        <div class="mb-4">
+          <label
+            for="taskUrlInput"
+            class="block mb-2 text-sm font-medium text-neutral-700"
+            >Ссылка на задачу</label
+          >
+          <InputText
+            id="taskUrlInput"
+            v-model="taskUrlInput"
+            :class="['w-full', urlError ? 'border-red-500' : '']"
+            placeholder="https://..."
+            required
+            autofocus
+          />
+          <div v-if="urlError" class="text-red-500 text-xs mt-1">
+            Введите корректную ссылку
+          </div>
+        </div>
+        <Button
+          type="submit"
+          label="Сохранить"
+          class="w-full"
+          :disabled="isLoading"
+        />
+      </form>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import { useToast } from "primevue/usetoast";
+import Dialog from "primevue/dialog";
+import InputText from "primevue/inputtext";
+import Button from "primevue/button";
+import { ref, computed } from "vue";
+import { useApi } from "~/composables/useApi";
+import { useUser } from "~/composables/useUser";
 
 // Props
 const props = defineProps({
@@ -75,16 +138,92 @@ const props = defineProps({
     required: true,
   },
 });
-
 // Emits
 const emit = defineEmits(["occupy", "release"]);
-
 // Композаблы
 const { user } = useUser();
 const toast = useToast();
-
+const { updateStand } = useApi();
 // Локальное состояние
 const isLoading = ref(false);
+const showTaskModal = ref(false);
+const taskUrlInput = ref("");
+const urlError = ref(false);
+
+// Открыть модалку для добавления/редактирования ссылки
+function openTaskModal() {
+  taskUrlInput.value = props.stand.task_url || "";
+  urlError.value = false;
+  showTaskModal.value = true;
+}
+// Проверка валидности URL
+function isValidUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+// Отправить ссылку на задачу
+async function submitTaskUrl() {
+  urlError.value = false;
+  if (!isValidUrl(taskUrlInput.value)) {
+    urlError.value = true;
+    return;
+  }
+  isLoading.value = true;
+  try {
+    await updateStand(props.stand.id, "set_task_url", null, {
+      task_url: taskUrlInput.value,
+    });
+    toast.add({
+      severity: "success",
+      summary: "Сохранено",
+      detail: "Ссылка на задачу сохранена",
+      life: 3000,
+    });
+    showTaskModal.value = false;
+    // Сообщаем родителю об изменении ссылки
+    emit("task-url-updated", {
+      standId: props.stand.id,
+      task_url: taskUrlInput.value,
+    });
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: error.message || "Не удалось сохранить ссылку",
+      life: 5000,
+    });
+  } finally {
+    isLoading.value = false;
+  }
+}
+// Удалить ссылку на задачу
+async function unsetTaskUrl() {
+  isLoading.value = true;
+  try {
+    await updateStand(props.stand.id, "unset_task_url");
+    toast.add({
+      severity: "info",
+      summary: "Ссылка удалена",
+      detail: "Ссылка на задачу отвязана",
+      life: 3000,
+    });
+    // Сообщаем родителю об удалении ссылки
+    emit("task-url-removed", props.stand.id);
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: error.message || "Не удалось удалить ссылку",
+      life: 5000,
+    });
+  } finally {
+    isLoading.value = false;
+  }
+}
 
 /**
  * Вычисляемые свойства для состояния стенда

@@ -74,10 +74,11 @@ export const useApi = () => {
    * @param {number} standId - ID стенда
    * @param {string} action - действие ('occupy' или 'release')
    * @param {Object} user - данные пользователя
+   * @param {Object} extra - дополнительные поля (например, task_url)
    * @returns {Promise<Object>} ответ сервера
    */
-  const updateStand = async (standId, action, user = null) => {
-    return await post("/stands", { standId, action, user });
+  const updateStand = async (standId, action, user = null, extra = {}) => {
+    return await post("/stands", { standId, action, user, ...extra });
   };
 
   /**
