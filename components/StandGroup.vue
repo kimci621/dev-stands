@@ -53,15 +53,58 @@
       </div>
     </div>
 
+    <!-- Фильтры -->
+    <div
+      class="flex items-center gap-6 mb-6"
+      v-if="props.groupName === 'backend' || true"
+    >
+      <!-- Табы для backend -->
+      <div
+        v-if="props.groupName === 'backend'"
+        class="flex gap-2 bg-neutral-100 rounded-xl p-1 shadow-inner animate-fade-in"
+      >
+        <button
+          v-for="tab in tabs"
+          :key="tab"
+          @click="selectedTab = tab"
+          :class="[
+            'px-4 py-2 rounded-lg font-medium transition-all duration-200',
+            selectedTab === tab
+              ? 'bg-green-500 text-white shadow-md scale-105'
+              : 'text-neutral-700 hover:bg-green-100 hover:text-green-700',
+          ]"
+        >
+          {{ tab }}
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-2 bg-neutral-100 rounded-xl px-3 py-2 shadow-inner animate-fade-in"
+      >
+        <Checkbox
+          v-model="showFreeOnly"
+          :binary="true"
+          :inputId="'freeOnlyCheckbox' + props.groupName"
+          class="!w-5 !h-5"
+        />
+        <label
+          :for="'freeOnlyCheckbox' + props.groupName"
+          class="font-medium cursor-pointer select-none text-neutral-700"
+        >
+          Свободные
+        </label>
+      </div>
+    </div>
     <!-- Список стендов -->
     <div class="stands-grid">
-      <StandCard
-        v-for="stand in memoizedStands"
-        :key="stand.key"
-        :stand="stand"
-        @occupy="handleOccupy"
-        @release="handleRelease"
-      />
+      <TransitionGroup name="fade">
+        <StandCard
+          v-for="stand in filteredStands"
+          :key="stand.key"
+          :stand="stand"
+          @occupy="handleOccupy"
+          @release="handleRelease"
+        />
+      </TransitionGroup>
     </div>
 
     <!-- Пустое состояние -->
@@ -81,6 +124,8 @@
 
 <script setup>
 import { useToast } from "primevue/usetoast";
+import { ref, computed } from "vue";
+import Checkbox from "primevue/checkbox";
 
 // Props
 const props = defineProps({
@@ -129,9 +174,28 @@ const occupancyPercentage = computed(() => {
   return Math.round((occupiedStands.value / totalStands.value) * 100);
 });
 
-// Мемоизированный список для предотвращения лишних перерисовок
-const memoizedStands = computed(() => {
-  return props.stands.map((stand) => ({
+// Табы для backend-группы
+const tabs = ["Все", "Deploy", "API-4", "October"];
+const selectedTab = ref("Все");
+// Состояние чекбокса "Свободные"
+const showFreeOnly = ref(false);
+/**
+ * Фильтрует стенды по выбранному табу и чекбоксу "Свободные"
+ */
+const filteredStands = computed(() => {
+  let stands = props.stands;
+  // Фильтрация по табу (только для backend)
+  if (props.groupName === "backend" && selectedTab.value !== "Все") {
+    stands = stands.filter((s) =>
+      s.name?.toLowerCase().includes(selectedTab.value.toLowerCase())
+    );
+  }
+  // Фильтрация по "Свободные"
+  if (showFreeOnly.value) {
+    stands = stands.filter((s) => s.status === "free");
+  }
+  // Мемоизация ключа для StandCard
+  return stands.map((stand) => ({
     ...stand,
     key: `${stand.id}-${stand.status}-${stand.occupiedBy || "free"}`,
   }));
@@ -256,5 +320,19 @@ const handleRelease = async (standId) => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
