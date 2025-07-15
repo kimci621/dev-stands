@@ -46,8 +46,8 @@ export const useUser = () => {
    * Регистрация пользователя через API
    */
   const register = async (name, email, password) => {
-    const { post } = useApi();
-    const res = await post("/register", { name, email, password });
+    const { register: apiRegister } = useApi();
+    const res = await apiRegister(name, email, password);
     user.value = res;
     saveUserToStorage();
     return res;
@@ -57,8 +57,8 @@ export const useUser = () => {
    * Вход пользователя через API
    */
   const login = async (email, password) => {
-    const { post } = useApi();
-    const res = await post("/login", { email, password });
+    const { login: apiLogin } = useApi();
+    const res = await apiLogin(email, password);
     user.value = res;
     saveUserToStorage();
     return res;

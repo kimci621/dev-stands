@@ -92,19 +92,19 @@ const isLoading = ref(false);
 const isFree = computed(() => props.stand.status === "free");
 const isOccupied = computed(() => props.stand.status === "occupied");
 const isOccupiedByCurrentUser = computed(
-  () => isOccupied.value && props.stand.occupiedBy === user.value.name
+  () => isOccupied.value && props.stand.occupiedBy === user.value.email
 );
 const isOccupiedByOther = computed(
   () =>
     isOccupied.value &&
     props.stand.occupiedBy &&
-    props.stand.occupiedBy !== user.value.name
+    props.stand.occupiedBy !== user.value.email
 );
 
 /**
  * Вычисляемые свойства для действий
  */
-const canOccupy = computed(() => isFree.value && !!user.value.name);
+const canOccupy = computed(() => isFree.value && !!user.value.email);
 const canRelease = computed(() => isOccupiedByCurrentUser.value);
 
 /**
@@ -173,11 +173,11 @@ const formatOccupiedTime = computed(() => {
  * Обрабатывает занятие стенда
  */
 const handleOccupy = async () => {
-  if (!user.value.name) {
+  if (!user.value.email) {
     toast.add({
       severity: "warn",
       summary: "Внимание",
-      detail: "Необходимо указать ваше имя перед занятием стенда",
+      detail: "Необходимо войти в систему перед занятием стенда",
       life: 5000,
     });
     return;

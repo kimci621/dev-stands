@@ -62,18 +62,26 @@ export const useStands = () => {
   };
 
   /**
-   * Сохраняет стенды на сервер
+   * Обновляет конкретный стенд на сервере
+   * @param {number} standId - ID стенда
+   * @param {string} action - действие ('occupy' или 'release')
+   * @param {Object} userData - данные пользователя
    */
-  const saveStands = async () => {
+  const updateStandOnServer = async (standId, action, userData = null) => {
     try {
-      const response = await updateStands(stands.value);
-      lastReset.value = response.lastReset;
-      console.log("Стенды сохранены:", response);
+      const { updateStand } = useApi();
+      const response = await updateStand(standId, action, userData);
+      console.log(
+        `Стенд ${standId} ${action === "occupy" ? "занят" : "освобожден"}:`,
+        response
+      );
+      return response;
     } catch (err) {
       error.value = err.message;
-      console.error("Ошибка при сохранении стендов:", err);
+      console.error("Ошибка при обновлении стенда:", err);
       // В случае ошибки - перезагружаем стенды с сервера
       await fetchStands();
+      throw err;
     }
   };
 
@@ -98,8 +106,8 @@ export const useStands = () => {
    * @returns {Promise<boolean>} успешность операции
    */
   const occupyStand = async (standId) => {
-    if (!user.value.name) {
-      throw new Error("Необходимо указать имя пользователя");
+    if (!user.value.email) {
+      throw new Error("Необходимо войти в систему");
     }
 
     const result = findStandById(standId);
@@ -110,18 +118,26 @@ export const useStands = () => {
     const { stand } = result;
 
     if (stand.status === "occupied") {
-      throw new Error(`Стенд уже занят пользователем: ${stand.occupiedBy}`);
+      throw new Error(
+        `Стенд уже занят пользователем: ${
+          stand.occupiedBy || stand.occupied_by
+        }`
+      );
     }
+
+    // Обновляем на сервере
+    await updateStandOnServer(standId, "occupy", user.value);
 
     // Обновляем локально
     stand.status = "occupied";
-    stand.occupiedBy = user.value.name;
+    stand.occupiedBy = user.value.email; // Используем email как в новой схеме БД
+    stand.occupied_by = user.value.email;
     stand.occupiedAt = Date.now();
+    stand.occupied_at = new Date().toISOString();
 
-    // Сохраняем на сервер
-    await saveStands();
-
-    console.log(`Стенд ${stand.name} занят пользователем ${user.value.name}`);
+    console.log(
+      `Стенд ${stand.name} занят пользователем ${user.value.name} (${user.value.email})`
+    );
     return true;
   };
 
@@ -143,17 +159,20 @@ export const useStands = () => {
     }
 
     // Проверяем, может ли пользователь освободить стенд
-    if (stand.occupiedBy !== user.value.name) {
-      throw new Error(`Только ${stand.occupiedBy} может освободить этот стенд`);
+    const standOwner = stand.occupiedBy || stand.occupied_by;
+    if (standOwner !== user.value.email) {
+      throw new Error(`Только ${standOwner} может освободить этот стенд`);
     }
+
+    // Обновляем на сервере
+    await updateStandOnServer(standId, "release");
 
     // Обновляем локально
     stand.status = "free";
     stand.occupiedBy = null;
+    stand.occupied_by = null;
     stand.occupiedAt = null;
-
-    // Сохраняем на сервер
-    await saveStands();
+    stand.occupied_at = null;
 
     console.log(`Стенд ${stand.name} освобожден`);
     return true;
@@ -187,7 +206,7 @@ export const useStands = () => {
       group.forEach((stand) => {
         if (
           stand.status === "occupied" &&
-          stand.occupiedBy === user.value.name
+          stand.occupiedBy === user.value.email
         ) {
           userStands.push(stand);
         }

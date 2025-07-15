@@ -1,28 +1,46 @@
-// API route для Nuxt - GET /api/health
-// Проверяет доступность "базы данных" (stands.json)
+// API route для проверки здоровья - GET /api/health
+// Проверяет доступность Supabase
 
-import { promises as fs } from "fs";
-import { join } from "path";
-
-const dataPath = join(process.cwd(), "server/data/stands.json");
+import { useSupabase } from "~/composables/useSupabase";
 
 export default defineEventHandler(async (event) => {
   try {
-    await fs.access(dataPath);
+    const { supabase } = useSupabase();
+
+    // Проверяем подключение к Supabase
+    const { data, error, count } = await supabase
+      .from("stands")
+      .select("*", { count: "exact", head: true });
+
+    if (error) {
+      return {
+        status: "ERROR",
+        db: "connection_failed",
+        timestamp: Date.now(),
+        uptime: process.uptime(),
+        message: "Не удается подключиться к Supabase",
+        error: error.message,
+      };
+    }
+
     return {
       status: "OK",
-      db: "available",
+      db: "connected",
       timestamp: Date.now(),
       uptime: process.uptime(),
-      message: "API сервер и база данных работают",
+      message: "API сервер и Supabase работают",
+      stands_count: count || 0,
     };
-  } catch (e) {
+  } catch (error) {
+    console.error("Health check error:", error);
+
     return {
       status: "ERROR",
-      db: "not found",
+      db: "error",
       timestamp: Date.now(),
       uptime: process.uptime(),
-      message: "Файл базы данных не найден",
+      message: "Ошибка проверки состояния",
+      error: error.message,
     };
   }
 });

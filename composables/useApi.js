@@ -51,6 +51,17 @@ export const useApi = () => {
   };
 
   /**
+   * Аутентификация
+   */
+  const login = async (email, password) => {
+    return await post("/auth/login", { email, password });
+  };
+
+  const register = async (name, email, password) => {
+    return await post("/auth/register", { name, email, password });
+  };
+
+  /**
    * Получает все стенды с сервера
    * @returns {Promise<Object>} данные стендов
    */
@@ -59,12 +70,14 @@ export const useApi = () => {
   };
 
   /**
-   * Обновляет стенды на сервере
-   * @param {Object} stands - объект со стендами
+   * Обновляет стенд на сервере
+   * @param {number} standId - ID стенда
+   * @param {string} action - действие ('occupy' или 'release')
+   * @param {Object} user - данные пользователя
    * @returns {Promise<Object>} ответ сервера
    */
-  const updateStands = async (stands) => {
-    return await post("/stands", { stands });
+  const updateStand = async (standId, action, user = null) => {
+    return await post("/stands", { standId, action, user });
   };
 
   /**
@@ -72,7 +85,7 @@ export const useApi = () => {
    * @returns {Promise<Object>} ответ сервера
    */
   const resetStands = async () => {
-    return await post("/reset");
+    return await post("/stands/reset");
   };
 
   /**
@@ -86,8 +99,10 @@ export const useApi = () => {
   return {
     get,
     post,
+    login,
+    register,
     getStands,
-    updateStands,
+    updateStand,
     resetStands,
     healthCheck,
   };
