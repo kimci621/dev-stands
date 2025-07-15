@@ -221,32 +221,6 @@ export const useStands = () => {
   });
 
   /**
-   * Вычисляет время до следующего сброса (полночь)
-   * @returns {Object} информация о времени до сброса
-   */
-  const getTimeUntilReset = computed(() => {
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-
-    const timeDiff = tomorrow.getTime() - now.getTime();
-    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-
-    return {
-      hours,
-      minutes,
-      seconds,
-      totalSeconds: Math.floor(timeDiff / 1000),
-      formatted: `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
-    };
-  });
-
-  /**
    * Запускает polling для автоматического обновления
    */
   const startPolling = () => {
@@ -299,7 +273,6 @@ export const useStands = () => {
     // Вычисляемые свойства
     getUserStands,
     getStatistics,
-    getTimeUntilReset,
 
     // Методы
     fetchStands,
