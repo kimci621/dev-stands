@@ -55,7 +55,7 @@
 
     <!-- Фильтры -->
     <div
-      class="flex items-center gap-6 mb-6"
+      class="flex flex-wrap items-center gap-6 mb-6"
       v-if="props.groupName === 'backend' || true"
     >
       <!-- Табы для backend -->
@@ -70,28 +70,58 @@
           :class="[
             'px-4 py-2 rounded-lg font-medium transition-all duration-200',
             selectedTab === tab
-              ? 'bg-green-500 text-white shadow-md scale-105'
-              : 'text-neutral-700 hover:bg-green-100 hover:text-green-700',
+              ? 'bg-primary-500 text-white shadow-md scale-105'
+              : 'text-neutral-700 hover:bg-primary-100 hover:text-primary-700',
           ]"
         >
           {{ tab }}
         </button>
       </div>
+      <!-- Поиск -->
+      <div class="flex-1">
+        <InputText
+          v-model="searchQuery"
+          placeholder="Поиск"
+          class="min-w-[320px]"
+        />
+      </div>
+      <!-- Радиогруппа для фильтрации по статусу -->
       <div
-        class="flex items-center gap-2 bg-neutral-100 rounded-xl px-3 py-2 shadow-inner animate-fade-in"
+        class="flex items-center gap-4 bg-neutral-100 rounded-xl px-3 py-2 shadow-inner animate-fade-in"
       >
-        <Checkbox
-          v-model="showFreeOnly"
-          :binary="true"
-          :inputId="'freeOnlyCheckbox' + props.groupName"
+        <RadioButton
+          v-model="statusFilter"
+          inputId="statusAll"
+          value="all"
           class="!w-5 !h-5"
         />
         <label
-          :for="'freeOnlyCheckbox' + props.groupName"
+          for="statusAll"
           class="font-medium cursor-pointer select-none text-neutral-700"
+          >Все</label
         >
-          Свободные
-        </label>
+        <RadioButton
+          v-model="statusFilter"
+          inputId="statusFree"
+          value="free"
+          class="!w-5 !h-5"
+        />
+        <label
+          for="statusFree"
+          class="font-medium cursor-pointer select-none text-neutral-700"
+          >Свободные</label
+        >
+        <RadioButton
+          v-model="statusFilter"
+          inputId="statusOccupied"
+          value="occupied"
+          class="!w-5 !h-5"
+        />
+        <label
+          for="statusOccupied"
+          class="font-medium cursor-pointer select-none text-neutral-700"
+          >Занятые</label
+        >
       </div>
     </div>
     <!-- Список стендов -->
@@ -127,7 +157,8 @@
 <script setup>
 import { useToast } from "primevue/usetoast";
 import { ref, computed } from "vue";
-import Checkbox from "primevue/checkbox";
+import RadioButton from "primevue/radiobutton";
+import InputText from "primevue/inputtext";
 
 // Props
 const props = defineProps({
@@ -179,10 +210,12 @@ const occupancyPercentage = computed(() => {
 // Табы для backend-группы
 const tabs = ["Все", "Deploy", "API-4", "October"];
 const selectedTab = ref("Все");
-// Состояние чекбокса "Свободные"
-const showFreeOnly = ref(false);
+// Состояние радиогруппы для фильтрации по статусу
+const statusFilter = ref("all");
+// Состояние поиска
+const searchQuery = ref("");
 /**
- * Фильтрует стенды по выбранному табу и чекбоксу "Свободные"
+ * Фильтрует стенды по выбранному табу и статусу
  */
 const filteredStands = computed(() => {
   let stands = props.stands;
@@ -192,9 +225,17 @@ const filteredStands = computed(() => {
       s.name?.toLowerCase().includes(selectedTab.value.toLowerCase())
     );
   }
-  // Фильтрация по "Свободные"
-  if (showFreeOnly.value) {
+  // Фильтрация по статусу
+  if (statusFilter.value === "free") {
     stands = stands.filter((s) => s.status === "free");
+  } else if (statusFilter.value === "occupied") {
+    stands = stands.filter((s) => s.status === "occupied");
+  }
+  // Фильтрация по поиску
+  if (searchQuery.value) {
+    stands = stands.filter((s) =>
+      s.name?.toLowerCase().includes(searchQuery.value.toLowerCase().trim())
+    );
   }
   // Мемоизация ключа для StandCard
   return stands.map((stand) => ({
@@ -292,11 +333,11 @@ function handleEndedAtChanged() {
 }
 
 .empty-state {
-  @apply flex 
-    flex-col 
-    items-center 
-    justify-center 
-    py-16 
+  @apply flex
+    flex-col
+    items-center
+    justify-center
+    py-16
     text-center;
 }
 
@@ -347,5 +388,14 @@ function handleEndedAtChanged() {
 }
 .animate-fade-in {
   animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.p-inputtext {
+  background-color: #fff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
 }
 </style>
