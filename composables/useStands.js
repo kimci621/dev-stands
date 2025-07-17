@@ -1,6 +1,12 @@
 // Композабл для управления стендами
 export const useStands = () => {
-  const { getStands, updateStands, resetStands, recreateStands } = useApi();
+  const {
+    getStands,
+    updateStands,
+    resetStands,
+    resetExpiredStands,
+    recreateStands,
+  } = useApi();
   const { user } = useUser();
 
   // Реактивное состояние
@@ -16,7 +22,11 @@ export const useStands = () => {
 
   // Интервал для polling
   let pollingInterval = null;
-  const POLLING_INTERVAL = 3000; // 3 секунды
+  const POLLING_INTERVAL = 10000; // 10 секунд
+
+  // Интервал для проверки просроченных стендов
+  let expiredCheckInterval = null;
+  const EXPIRED_CHECK_INTERVAL = 30000; // 30 секунд
 
   /**
    * Загружает стенды с сервера
@@ -268,10 +278,50 @@ export const useStands = () => {
     }
   };
 
-  const toggleRecreateStands = async () => {
-    await recreateStands();
-    await fetchStands();
-    await initialize();
+  /**
+   * Проверяет и сбрасывает просроченные стенды
+   */
+  const checkExpiredStands = async () => {
+    try {
+      const response = await resetExpiredStands();
+      if (response.resetCount > 0) {
+        console.log(
+          `Автоматически сброшено ${response.resetCount} просроченных стендов`
+        );
+        // Обновляем состояние стендов после сброса
+        await fetchStands(false);
+      }
+    } catch (err) {
+      console.warn("Ошибка при проверке просроченных стендов:", err);
+    }
+  };
+
+  /**
+   * Запускает проверку просроченных стендов
+   */
+  const startExpiredCheck = () => {
+    if (expiredCheckInterval) return;
+
+    expiredCheckInterval = setInterval(
+      checkExpiredStands,
+      EXPIRED_CHECK_INTERVAL
+    );
+    console.log(
+      "Проверка просроченных стендов запущена с интервалом",
+      EXPIRED_CHECK_INTERVAL,
+      "мс"
+    );
+  };
+
+  /**
+   * Останавливает проверку просроченных стендов
+   */
+  const stopExpiredCheck = () => {
+    if (expiredCheckInterval) {
+      clearInterval(expiredCheckInterval);
+      expiredCheckInterval = null;
+      console.log("Проверка просроченных стендов остановлена");
+    }
   };
 
   /**
@@ -280,11 +330,14 @@ export const useStands = () => {
   const initialize = async () => {
     await fetchStands();
     startPolling();
+    startExpiredCheck();
+    checkExpiredStands();
   };
 
   // Очистка при размонтировании
   onUnmounted(() => {
     stopPolling();
+    stopExpiredCheck();
   });
 
   return {
@@ -306,10 +359,16 @@ export const useStands = () => {
     performReset,
     findStandById,
     initialize,
-    toggleRecreateStands,
+    recreateStands,
+    updateStands,
 
     // Управление polling
     startPolling,
     stopPolling,
+
+    // Управление проверкой просроченных стендов
+    startExpiredCheck,
+    stopExpiredCheck,
+    checkExpiredStands,
   };
 };

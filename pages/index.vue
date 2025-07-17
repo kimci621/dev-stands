@@ -260,7 +260,7 @@ const {
   releaseStand,
   performReset,
   initialize,
-  toggleRecreateStands,
+  recreateStands,
 } = useStands();
 
 const { user, isLoggedIn } = useUser();
@@ -374,8 +374,8 @@ onMounted(async () => {
     window.handleManualReset = handleManualReset;
   }
 
-  if (!window?.toggleRecreateStands) {
-    window.toggleRecreateStands = toggleRecreateStands;
+  if (!window?.recreateStands) {
+    window.recreateStands = recreateStands;
   }
 });
 

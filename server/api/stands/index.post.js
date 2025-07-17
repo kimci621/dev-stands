@@ -52,6 +52,28 @@ export default defineEventHandler(async (event) => {
       updates = {
         task_url: null,
       };
+    } else if (action === "set_ended_at") {
+      if (!body.ended_at) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: "ended_at обязателен",
+        });
+      }
+      // Проверяем, что ended_at - валидная дата
+      const endedAtDate = new Date(body.ended_at);
+      if (isNaN(endedAtDate.getTime())) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: "ended_at должен быть валидной датой",
+        });
+      }
+      updates = {
+        ended_at: endedAtDate.toISOString(),
+      };
+    } else if (action === "unset_ended_at") {
+      updates = {
+        ended_at: null,
+      };
     } else {
       throw createError({
         statusCode: 400,

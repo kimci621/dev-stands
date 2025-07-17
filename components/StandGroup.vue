@@ -104,6 +104,8 @@
         @release="handleRelease"
         @task-url-updated="handleTaskUrlChanged"
         @task-url-removed="handleTaskUrlChanged"
+        @ended-at-updated="handleEndedAtChanged"
+        @ended-at-removed="handleEndedAtChanged"
       />
     </div>
 
@@ -253,6 +255,11 @@ const handleRelease = async (standId) => {
 
 // Обработка обновления/удаления ссылки на задачу
 function handleTaskUrlChanged() {
+  // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
+  emit("refresh-stands");
+}
+// Обработка обновления/удаления времени окончания
+function handleEndedAtChanged() {
   // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
   emit("refresh-stands");
 }

@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_stands_occupied_by ON stands(occupied_by);
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stands ADD COLUMN IF NOT EXISTS task_url TEXT;
+ALTER TABLE stands ADD COLUMN IF NOT EXISTS ended_at TIMESTAMP WITH TIME ZONE;
 
 -- Политики для таблицы users
 CREATE POLICY "Пользователи могут читать свои данные" ON users

@@ -55,6 +55,34 @@
             />
           </div>
         </div>
+        <!-- Время окончания -->
+        <div class="mt-4" v-if="stand.occupiedBy">
+          <Button
+            v-if="!stand.ended_at"
+            label="Установить время освобождения"
+            icon="pi pi-clock"
+            class="p-button-sm p-button-outlined text-orange-600 border-orange-300 hover:bg-orange-50"
+            @click="openEndedAtModal"
+          />
+          <div v-else class="flex items-center gap-2 mt-2">
+            <span
+              class="text-orange-600 text-sm bg-orange-50 px-3 py-1 rounded-full"
+            >
+              <i class="pi pi-clock mr-1"></i>
+              Окончание: {{ formatEndedAt }}
+            </span>
+            <Button
+              icon="pi pi-pencil"
+              class="p-button-text p-0"
+              @click="openEndedAtModal"
+            />
+            <Button
+              icon="pi pi-times"
+              class="p-button-text p-0 text-red-500"
+              @click="unsetEndedAt"
+            />
+          </div>
+        </div>
       </div>
       <!-- Кнопки действий -->
       <div class="flex flex-col gap-3 ml-6">
@@ -119,6 +147,45 @@
         />
       </form>
     </Dialog>
+    <!-- Модалка для установки времени окончания -->
+    <Dialog
+      v-model:visible="showEndedAtModal"
+      header="Время окончания занятия"
+      :modal="true"
+      :closable="true"
+      :style="{ width: '400px' }"
+    >
+      <form @submit.prevent="submitEndedAt">
+        <div class="mb-4">
+          <label
+            for="endedAtInput"
+            class="block mb-2 text-sm font-medium text-neutral-700"
+            >Дата и время окончания</label
+          >
+          <Calendar
+            id="endedAtInput"
+            v-model="endedAtInput"
+            :class="['w-full', endedAtError ? 'border-red-500' : '']"
+            showTime
+            hourFormat="24"
+            dateFormat="dd/mm/yy"
+            placeholder="Выберите дату и время"
+            :minDate="new Date()"
+            required
+            autofocus
+          />
+          <div v-if="endedAtError" class="text-red-500 text-xs mt-1">
+            {{ endedAtError }}
+          </div>
+        </div>
+        <Button
+          type="submit"
+          label="Сохранить"
+          class="w-full"
+          :disabled="isLoading"
+        />
+      </form>
+    </Dialog>
   </div>
 </template>
 
@@ -127,6 +194,7 @@ import { useToast } from "primevue/usetoast";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
+import Calendar from "primevue/calendar";
 import { ref, computed } from "vue";
 import { useApi } from "~/composables/useApi";
 import { useUser } from "~/composables/useUser";
@@ -139,7 +207,14 @@ const props = defineProps({
   },
 });
 // Emits
-const emit = defineEmits(["occupy", "release"]);
+const emit = defineEmits([
+  "occupy",
+  "release",
+  "task-url-updated",
+  "task-url-removed",
+  "ended-at-updated",
+  "ended-at-removed",
+]);
 // Композаблы
 const { user } = useUser();
 const toast = useToast();
@@ -149,6 +224,9 @@ const isLoading = ref(false);
 const showTaskModal = ref(false);
 const taskUrlInput = ref("");
 const urlError = ref(false);
+const showEndedAtModal = ref(false);
+const endedAtInput = ref(null);
+const endedAtError = ref("");
 const taskUrl = computed(() => {
   if (!props.stand?.task_url) return "";
   const taskUrlHasParams = props.stand.task_url.includes("?");
@@ -164,6 +242,14 @@ function openTaskModal() {
   urlError.value = false;
   showTaskModal.value = true;
 }
+// Открыть модалку для установки времени окончания
+function openEndedAtModal() {
+  endedAtInput.value = props.stand.ended_at
+    ? new Date(props.stand.ended_at)
+    : null;
+  endedAtError.value = "";
+  showEndedAtModal.value = true;
+}
 // Проверка валидности URL
 function isValidUrl(url) {
   try {
@@ -173,6 +259,18 @@ function isValidUrl(url) {
     return false;
   }
 }
+// Форматированное время окончания
+const formatEndedAt = computed(() => {
+  if (!props.stand.ended_at) return "";
+  const date = new Date(props.stand.ended_at);
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+});
 // Отправить ссылку на задачу
 async function submitTaskUrl() {
   urlError.value = false;
@@ -208,6 +306,46 @@ async function submitTaskUrl() {
     isLoading.value = false;
   }
 }
+// Отправить время окончания
+async function submitEndedAt() {
+  endedAtError.value = "";
+  if (!endedAtInput.value) {
+    endedAtError.value = "Выберите дату и время";
+    return;
+  }
+  if (endedAtInput.value < new Date()) {
+    endedAtError.value = "Время окончания не может быть в прошлом";
+    return;
+  }
+  isLoading.value = true;
+  try {
+    console.log("endedAtInput.value", endedAtInput.value.toISOString());
+    await updateStand(props.stand.id, "set_ended_at", null, {
+      ended_at: endedAtInput.value.toISOString(),
+    });
+    toast.add({
+      severity: "success",
+      summary: "Сохранено",
+      detail: "Время окончания установлено",
+      life: 3000,
+    });
+    showEndedAtModal.value = false;
+    // Сообщаем родителю об изменении времени окончания
+    emit("ended-at-updated", {
+      standId: props.stand.id,
+      ended_at: endedAtInput.value.toISOString(),
+    });
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: error.message || "Не удалось установить время окончания",
+      life: 5000,
+    });
+  } finally {
+    isLoading.value = false;
+  }
+}
 // Удалить ссылку на задачу
 async function unsetTaskUrl() {
   isLoading.value = true;
@@ -226,6 +364,30 @@ async function unsetTaskUrl() {
       severity: "error",
       summary: "Ошибка",
       detail: error.message || "Не удалось удалить ссылку",
+      life: 5000,
+    });
+  } finally {
+    isLoading.value = false;
+  }
+}
+// Удалить время окончания
+async function unsetEndedAt() {
+  isLoading.value = true;
+  try {
+    await updateStand(props.stand.id, "unset_ended_at");
+    toast.add({
+      severity: "info",
+      summary: "Время сброшено",
+      detail: "Время окончания удалено",
+      life: 3000,
+    });
+    // Сообщаем родителю об удалении времени окончания
+    emit("ended-at-removed", props.stand.id);
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: error.message || "Не удалось удалить время окончания",
       life: 5000,
     });
   } finally {

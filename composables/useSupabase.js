@@ -232,18 +232,19 @@ export const useSupabase = () => {
       // Создаем дефолтные стенды
       const defaultStands = [
         // Frontend стенды
+        { name: "FE Deploy Dev", type: "frontend", status: "Свободен" },
+        { name: "FE Deploy Dev2", type: "frontend", status: "Свободен" },
+        { name: "FE Deploy Dev3", type: "frontend", status: "Свободен" },
+        { name: "FE Deploy Dev4", type: "frontend", status: "Свободен" },
+        { name: "FE Deploy Dev5", type: "frontend", status: "Свободен" },
+        { name: "FE Deploy Dev6", type: "frontend", status: "Свободен" },
+        { name: "FE Deploy Dev7", type: "frontend", status: "Свободен" },
+        { name: "FE AWS Dev", type: "frontend", status: "Свободен" },
         {
-          name: "Frontend Deploy LoadTest",
+          name: "FE Deploy LoadTest",
           type: "frontend",
           status: "Свободен",
         },
-        { name: "Frontend Deploy Dev", type: "frontend", status: "Свободен" },
-        { name: "Frontend Deploy Dev2", type: "frontend", status: "Свободен" },
-        { name: "Frontend Deploy Dev3", type: "frontend", status: "Свободен" },
-        { name: "Frontend Deploy Dev4", type: "frontend", status: "Свободен" },
-        { name: "Frontend Deploy Dev5", type: "frontend", status: "Свободен" },
-        { name: "Frontend AWS Dev", type: "frontend", status: "Свободен" },
-
         // BE стенды
         {
           name: "BE Deploy LoadTest",
@@ -255,13 +256,90 @@ export const useSupabase = () => {
         { name: "BE Deploy Dev3", type: "backend", status: "Свободен" },
         { name: "BE Deploy Dev4", type: "backend", status: "Свободен" },
         { name: "BE Deploy Dev5", type: "backend", status: "Свободен" },
+        { name: "BE Deploy Dev6", type: "backend", status: "Свободен" },
+        { name: "BE Deploy Dev7", type: "backend", status: "Свободен" },
         { name: "BE AWS Dev", type: "backend", status: "Свободен" },
+        {
+          name: "BE Deploy LoadTest",
+          type: "backend",
+          status: "Свободен",
+        },
+        // BE стенды API-4
+        { name: "BE API-4 Dev", type: "backend", status: "Свободен" },
+        { name: "BE API-4 Dev2", type: "backend", status: "Свободен" },
+        { name: "BE API-4 Dev3", type: "backend", status: "Свободен" },
+        { name: "BE API-4 Dev4", type: "backend", status: "Свободен" },
+        { name: "BE API-4 Dev5", type: "backend", status: "Свободен" },
+        { name: "BE API-4 Dev6", type: "backend", status: "Свободен" },
+        { name: "BE API-4 Dev7", type: "backend", status: "Свободен" },
+        { name: "BE API-4 AWS Dev", type: "backend", status: "Свободен" },
+        {
+          name: "BE API-4 LoadTest",
+          type: "backend",
+          status: "Свободен",
+        },
+        // BE стенды OCTOBER
+        { name: "BE OCTOBER Dev", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER Dev2", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER Dev3", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER Dev4", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER Dev5", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER Dev6", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER Dev7", type: "backend", status: "Свободен" },
+        { name: "BE OCTOBER AWS Dev", type: "backend", status: "Свободен" },
+        {
+          name: "BE OCTOBER LoadTest",
+          type: "backend",
+          status: "Свободен",
+        },
       ];
 
       const { error } = await supabase.from("stands").insert(defaultStands);
 
       if (error) throw error;
-      console.log("Default stands initialized with frontend/backend types");
+      console.log("Default stands created with proper frontend/backend types");
+    },
+
+    // Метод для сброса просроченных стендов
+    async resetExpiredStands() {
+      const now = new Date().toISOString();
+
+      // Находим просроченные стенды
+      const { data: expiredStands, error: selectError } = await supabase
+        .from("stands")
+        .select("*")
+        .not("ended_at", "is", null)
+        .lte("ended_at", now);
+
+      if (selectError) throw selectError;
+
+      if (!expiredStands || expiredStands.length === 0) {
+        return { count: 0, stands: [] };
+      }
+
+      // Сбрасываем просроченные стенды
+      const { data: updatedStands, error: updateError } = await supabase
+        .from("stands")
+        .update({
+          status: "Свободен",
+          occupied_by: null,
+          occupied_at: null,
+          ended_at: null,
+        })
+        .not("ended_at", "is", null)
+        .lte("ended_at", now)
+        .select();
+
+      if (updateError) throw updateError;
+
+      console.log(
+        `Сброшено ${updatedStands?.length || 0} просроченных стендов`
+      );
+
+      return {
+        count: updatedStands?.length || 0,
+        stands: updatedStands || [],
+      };
     },
   };
 };
