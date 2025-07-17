@@ -41,7 +41,7 @@
               :href="stand.task_url"
               target="_blank"
               class="text-primary-600 underline break-all"
-              >Ссылка на задачу</a
+              >{{ taskUrl }}</a
             >
             <Button
               icon="pi pi-pencil"
@@ -149,6 +149,14 @@ const isLoading = ref(false);
 const showTaskModal = ref(false);
 const taskUrlInput = ref("");
 const urlError = ref(false);
+const taskUrl = computed(() => {
+  if (!props.stand?.task_url) return "";
+  const taskUrlHasParams = props.stand.task_url.includes("?");
+  if (taskUrlHasParams) {
+    return props.stand.task_url.split("?")[0];
+  }
+  return props.stand.task_url;
+});
 
 // Открыть модалку для добавления/редактирования ссылки
 function openTaskModal() {

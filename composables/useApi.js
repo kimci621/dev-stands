@@ -89,6 +89,10 @@ export const useApi = () => {
     return await post("/stands/reset");
   };
 
+  const recreateStands = async () => {
+    return await post("/stands/recreate");
+  };
+
   /**
    * Проверяет работоспособность сервера
    * @returns {Promise<Object>} статус сервера
@@ -105,6 +109,7 @@ export const useApi = () => {
     getStands,
     updateStand,
     resetStands,
+    recreateStands,
     healthCheck,
   };
 };

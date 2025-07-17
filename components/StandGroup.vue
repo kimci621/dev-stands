@@ -96,17 +96,15 @@
     </div>
     <!-- Список стендов -->
     <div class="stands-grid">
-      <TransitionGroup name="fade">
-        <StandCard
-          v-for="stand in filteredStands"
-          :key="stand.key"
-          :stand="stand"
-          @occupy="handleOccupy"
-          @release="handleRelease"
-          @task-url-updated="handleTaskUrlChanged"
-          @task-url-removed="handleTaskUrlChanged"
-        />
-      </TransitionGroup>
+      <StandCard
+        v-for="stand in filteredStands"
+        :key="stand.key"
+        :stand="stand"
+        @occupy="handleOccupy"
+        @release="handleRelease"
+        @task-url-updated="handleTaskUrlChanged"
+        @task-url-removed="handleTaskUrlChanged"
+      />
     </div>
 
     <!-- Пустое состояние -->

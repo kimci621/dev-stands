@@ -1,6 +1,6 @@
 // Композабл для управления стендами
 export const useStands = () => {
-  const { getStands, updateStands, resetStands } = useApi();
+  const { getStands, updateStands, resetStands, recreateStands } = useApi();
   const { user } = useUser();
 
   // Реактивное состояние
@@ -268,6 +268,12 @@ export const useStands = () => {
     }
   };
 
+  const toggleRecreateStands = async () => {
+    await recreateStands();
+    await fetchStands();
+    await initialize();
+  };
+
   /**
    * Инициализация композабла
    */
@@ -300,6 +306,7 @@ export const useStands = () => {
     performReset,
     findStandById,
     initialize,
+    toggleRecreateStands,
 
     // Управление polling
     startPolling,

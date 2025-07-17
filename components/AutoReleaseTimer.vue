@@ -96,7 +96,7 @@ const handleManualReset = async () => {
 }
 
 .timer-container {
-  @apply flex items-center gap-3 mb-3;
+  @apply flex items-center gap-3;
 }
 
 .timer-info {

@@ -57,8 +57,8 @@
       <div class="mb-8 animate-slide-up">
         <AutoReleaseTimer
           :last-reset="lastReset"
-          :show-reset-button="true"
-          @manual-reset="handleManualReset"
+          :show-reset-button="false"
+          @manual-reset="() => {}"
         />
       </div>
 
@@ -260,6 +260,7 @@ const {
   releaseStand,
   performReset,
   initialize,
+  toggleRecreateStands,
 } = useStands();
 
 const { user, isLoggedIn } = useUser();
@@ -339,7 +340,6 @@ const handleRelease = async (standId) => {
 const handleManualReset = async () => {
   try {
     await performReset();
-
     toast.add({
       severity: "info",
       summary: "Сброс выполнен",
@@ -368,6 +368,14 @@ onMounted(async () => {
     await initialize();
   } catch (err) {
     console.error("Ошибка инициализации:", err);
+  }
+
+  if (!window?.handleManualReset) {
+    window.handleManualReset = handleManualReset;
+  }
+
+  if (!window?.toggleRecreateStands) {
+    window.toggleRecreateStands = toggleRecreateStands;
   }
 });
 
