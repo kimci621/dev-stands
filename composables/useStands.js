@@ -183,9 +183,49 @@ export const useStands = () => {
     stand.occupied_by = null;
     stand.occupiedAt = null;
     stand.occupied_at = null;
+    stand.ended_at = null;
+    stand.comment = null;
+    stand.task_url = null;
 
     console.log(`Стенд ${stand.name} освобожден`);
     return true;
+  };
+
+  /**
+   * Устанавливает комментарий для стенда
+   * @param {number} standId - ID стенда
+   * @param {string|null} comment - текст комментария
+   * @returns {Promise<boolean>} успешность операции
+   */
+  const setComment = async (standId, comment) => {
+    const { updateStand } = useApi();
+    const result = findStandById(standId);
+    if (!result) {
+      throw new Error("Стенд не найден");
+    }
+
+    const { stand } = result;
+
+    if (stand.status !== "occupied") {
+      throw new Error("Нельзя добавить комментарий к свободному стенду");
+    }
+
+    const standOwner = stand.occupiedBy || stand.occupied_by;
+    if (standOwner !== user.value.email) {
+      throw new Error(`Только ${standOwner} может обновить комментарий`);
+    }
+
+    try {
+      await updateStand(standId, "set_comment", null, { comment });
+      stand.comment = comment;
+      console.log(`Комментарий для стенда ${stand.name} обновлен`);
+      return true;
+    } catch (err) {
+      error.value = err.message;
+      console.error("Ошибка при обновлении комментария стенда:", err);
+      await fetchStands(false);
+      throw err;
+    }
   };
 
   /**
@@ -356,6 +396,7 @@ export const useStands = () => {
     fetchStands,
     occupyStand,
     releaseStand,
+    setComment,
     performReset,
     findStandById,
     initialize,

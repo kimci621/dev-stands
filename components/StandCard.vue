@@ -83,6 +83,38 @@
             />
           </div>
         </div>
+        <!-- Комментарий -->
+        <div class="mt-4">
+          <div v-if="hasComment" class="comment-block">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1">
+                <p class="comment-label">Комментарий</p>
+                <p class="comment-text">{{ localComment }}</p>
+              </div>
+              <div v-if="canEditComment" class="flex items-center gap-2">
+                <Button
+                  icon="pi pi-pencil"
+                  class="p-button-text p-0"
+                  @click="openCommentModal"
+                />
+                <Button
+                  icon="pi pi-times"
+                  class="p-button-text p-0 text-red-500"
+                  :loading="isCommentSaving"
+                  :disabled="isCommentSaving"
+                  @click="removeComment"
+                />
+              </div>
+            </div>
+          </div>
+          <Button
+            v-else-if="canEditComment"
+            label="Добавить комментарий"
+            icon="pi pi-comment"
+            class="p-button-sm p-button-outlined text-neutral-600 border-neutral-300 hover:bg-neutral-50"
+            @click="openCommentModal"
+          />
+        </div>
       </div>
       <!-- Кнопки действий -->
       <div class="flex flex-col gap-3 ml-6">
@@ -186,6 +218,49 @@
         />
       </form>
     </Dialog>
+    <!-- Модалка для комментария -->
+    <Dialog
+      v-model:visible="showCommentModal"
+      header="Комментарий к стенду"
+      :modal="true"
+      :closable="true"
+      :style="{ width: '480px' }"
+    >
+      <form @submit.prevent="submitComment">
+        <div class="mb-4">
+          <label
+            for="commentInput"
+            class="block mb-2 text-sm font-medium text-neutral-700"
+            >Комментарий</label
+          >
+          <Textarea
+            id="commentInput"
+            v-model="commentInput"
+            rows="5"
+            autoResize
+            class="w-full"
+            placeholder="Опишите прогресс, блокеры или ссылку на PR"
+          />
+        </div>
+        <div class="flex gap-3">
+          <Button
+            type="submit"
+            label="Сохранить"
+            class="flex-1"
+            :disabled="isCommentSaving"
+            :loading="isCommentSaving"
+          />
+          <Button
+            v-if="hasComment"
+            type="button"
+            label="Удалить"
+            class="p-button-outlined text-red-500 border-red-300 flex-1"
+            :disabled="isCommentSaving"
+            @click="removeComment"
+          />
+        </div>
+      </form>
+    </Dialog>
   </div>
 </template>
 
@@ -195,15 +270,20 @@ import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Calendar from "primevue/calendar";
-import { ref, computed } from "vue";
-import { useApi } from "~/composables/useApi";
+import Textarea from "primevue/textarea";
+import { ref, computed, watch } from "vue";
 import { useUser } from "~/composables/useUser";
+import { useApi } from "~/composables/useApi";
 
 // Props
 const props = defineProps({
   stand: {
     type: Object,
     required: true,
+  },
+  allowCommentEdit: {
+    type: Boolean,
+    default: false,
   },
 });
 // Emits
@@ -227,6 +307,10 @@ const urlError = ref(false);
 const showEndedAtModal = ref(false);
 const endedAtInput = ref(null);
 const endedAtError = ref("");
+const showCommentModal = ref(false);
+const commentInput = ref("");
+const isCommentSaving = ref(false);
+const localComment = ref(props.stand.comment || "");
 const taskUrl = computed(() => {
   if (!props.stand?.task_url) return "";
   const taskUrlHasParams = props.stand.task_url.includes("?");
@@ -235,6 +319,13 @@ const taskUrl = computed(() => {
   }
   return props.stand.task_url;
 });
+
+watch(
+  () => props.stand.comment,
+  (value) => {
+    localComment.value = value || "";
+  }
+);
 
 // Открыть модалку для добавления/редактирования ссылки
 function openTaskModal() {
@@ -415,6 +506,10 @@ const isOccupiedByOther = computed(
  */
 const canOccupy = computed(() => isFree.value && !!user.value.email);
 const canRelease = computed(() => isOccupiedByCurrentUser.value);
+const canEditComment = computed(
+  () => isOccupiedByCurrentUser.value && props.allowCommentEdit
+);
+const hasComment = computed(() => !!localComment.value);
 
 /**
  * Стили карточки в зависимости от статуса
@@ -525,6 +620,62 @@ const handleRelease = async () => {
     isLoading.value = false;
   }
 };
+
+/**
+ * Открывает модалку редактирования комментария
+ */
+function openCommentModal() {
+  commentInput.value = localComment.value;
+  showCommentModal.value = true;
+}
+
+/**
+ * Сохраняет комментарий к стенду
+ */
+async function submitComment() {
+  isCommentSaving.value = true;
+  try {
+    const payloadComment = commentInput.value.trim();
+    emit("comment-change", props.stand.id, payloadComment || null);
+    localComment.value = payloadComment;
+    showCommentModal.value = false;
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: error.message || "Не удалось сохранить комментарий",
+      life: 5000,
+    });
+  } finally {
+    isCommentSaving.value = false;
+  }
+}
+
+/**
+ * Удаляет комментарий стенда
+ */
+async function removeComment() {
+  isCommentSaving.value = true;
+  try {
+    commentInput.value = "";
+    await submitComment();
+    toast.add({
+      severity: "info",
+      summary: "Комментарий удалён",
+      detail: "Комментарий очищен",
+      life: 3000,
+    });
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: error.message || "Не удалось удалить комментарий",
+      life: 5000,
+    });
+  } finally {
+    isCommentSaving.value = false;
+  }
+}
 </script>
 
 <style scoped>
@@ -550,6 +701,18 @@ const handleRelease = async () => {
     flex 
     items-center
     transition-all duration-300;
+}
+
+.comment-block {
+  @apply bg-neutral-100/80 border border-neutral-200 rounded-2xl p-4 shadow-inner;
+}
+
+.comment-label {
+  @apply text-xs font-semibold uppercase text-neutral-500 tracking-wide mb-2;
+}
+
+.comment-text {
+  @apply text-sm text-neutral-700 whitespace-pre-line;
 }
 
 /* Кастомные стили для кнопок */

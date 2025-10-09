@@ -5,7 +5,7 @@
       <i class="pi pi-clock text-blue-600"></i>
 
       <!-- Информация о последнем сбросе -->
-      <div class="timer-info">
+      <div class="timer-info hidden">
         <span class="timer-label"> Последний сброс: </span>
         <span class="timer-value">{{ lastResetFormatted }}</span>
       </div>

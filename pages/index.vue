@@ -54,7 +54,7 @@
       </div>
 
       <!-- Таймер автосброса -->
-      <div class="mb-8 animate-slide-up">
+      <div class="mb-8 animate-slide-up hidden">
         <AutoReleaseTimer
           :last-reset="lastReset"
           :show-reset-button="false"
@@ -185,9 +185,11 @@
           <StandGroup
             group-name="frontend"
             :stands="stands.frontend"
+            :allow-comment-edit="true"
             @occupy="handleOccupy"
             @release="handleRelease"
             @refresh-stands="refreshStands"
+            @comment-change="handleCommentChange"
           />
         </Transition>
 
@@ -195,9 +197,11 @@
           <StandGroup
             group-name="backend"
             :stands="stands.backend"
+            :allow-comment-edit="true"
             @occupy="handleOccupy"
             @release="handleRelease"
             @refresh-stands="refreshStands"
+            @comment-change="handleCommentChange"
           />
         </Transition>
       </div>
@@ -261,6 +265,7 @@ const {
   performReset,
   initialize,
   recreateStands,
+  setComment,
 } = useStands();
 
 const { user, isLoggedIn } = useUser();
@@ -335,11 +340,36 @@ const handleRelease = async (standId) => {
 };
 
 /**
+ * Обрабатывает изменение комментария стенда
+ * @param {number} standId - ID стенда
+ * @param {string|null} comment - текст комментария
+ */
+const handleCommentChange = async (standId, comment) => {
+  try {
+    await setComment(standId, comment);
+    await refreshStands();
+    toast.add({
+      severity: "success",
+      summary: "Успех",
+      detail: "Комментарий обновлён",
+      life: 3000,
+    });
+  } catch (err) {
+    toast.add({
+      severity: "error",
+      summary: "Ошибка",
+      detail: err.message || "Не удалось обновить комментарий",
+      life: 5000,
+    });
+  }
+};
+
+/**
  * Обрабатывает принудительный сброс всех стендов
  */
 const handleManualReset = async () => {
   try {
-    await performReset();
+    // await performReset();
     toast.add({
       severity: "info",
       summary: "Сброс выполнен",

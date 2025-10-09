@@ -37,6 +37,9 @@ export default defineEventHandler(async (event) => {
         status: "Свободен",
         occupied_by: null,
         occupied_at: null,
+        ended_at: null,
+        task_url: null,
+        comment: null,
       };
     } else if (action === "set_task_url") {
       if (!body.task_url || typeof body.task_url !== "string") {
@@ -73,6 +76,10 @@ export default defineEventHandler(async (event) => {
     } else if (action === "unset_ended_at") {
       updates = {
         ended_at: null,
+      };
+    } else if (action === "set_comment") {
+      updates = {
+        comment: body.comment,
       };
     } else {
       throw createError({

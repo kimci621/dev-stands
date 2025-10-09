@@ -130,12 +130,14 @@
         v-for="stand in filteredStands"
         :key="stand.key"
         :stand="stand"
+        :allow-comment-edit="props.allowCommentEdit"
         @occupy="handleOccupy"
         @release="handleRelease"
         @task-url-updated="handleTaskUrlChanged"
         @task-url-removed="handleTaskUrlChanged"
         @ended-at-updated="handleEndedAtChanged"
         @ended-at-removed="handleEndedAtChanged"
+        @comment-change="handleCommentChange"
       />
     </div>
 
@@ -170,10 +172,19 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  allowCommentEdit: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 // Emits
-const emit = defineEmits(["occupy", "release"]);
+const emit = defineEmits([
+  "occupy",
+  "release",
+  "refresh-stands",
+  "comment-change",
+]);
 
 // Композаблы
 const toast = useToast();
@@ -295,14 +306,18 @@ const handleRelease = async (standId) => {
 };
 
 // Обработка обновления/удаления ссылки на задачу
-function handleTaskUrlChanged() {
+function handleTaskUrlChanged(e) {
   // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
-  emit("refresh-stands");
+  emit("refresh-stands", e);
 }
 // Обработка обновления/удаления времени окончания
-function handleEndedAtChanged() {
+function handleEndedAtChanged(e) {
   // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
-  emit("refresh-stands");
+  emit("refresh-stands", e);
+}
+// Обработка изменения комментария
+function handleCommentChange(standId, comment) {
+  emit("comment-change", standId, comment);
 }
 </script>
 
