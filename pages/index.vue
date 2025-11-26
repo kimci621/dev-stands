@@ -63,7 +63,7 @@
       </div>
 
       <!-- Общая статистика -->
-      <div class="mb-10 animate-slide-up">
+      <div class="mb-10 animate-slide-up hidden">
         <div
           class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft border border-white/50 p-8"
         >
@@ -181,28 +181,62 @@
 
       <!-- Группы стендов -->
       <div v-else class="space-y-10">
+        <!-- Frontend Group -->
         <Transition name="fade" mode="out-in">
-          <StandGroup
-            group-name="frontend"
-            :stands="stands.frontend"
-            :allow-comment-edit="true"
-            @occupy="handleOccupy"
-            @release="handleRelease"
-            @refresh-stands="refreshStands"
-            @comment-change="handleCommentChange"
-          />
+          <div v-if="isGroupVisible('frontend')" class="relative">
+            <button
+              @click="toggleGroup('frontend')"
+              class="absolute top-4 right-4 z-[100] bg-slate-500 hover:bg-slate-600 text-white rounded-2xl px-4 py-2 transition-colors"
+            >
+              Скрыть блок Frontend
+            </button>
+            <StandGroup
+              group-name="frontend"
+              :stands="stands.frontend"
+              :allow-comment-edit="true"
+              @occupy="handleOccupy"
+              @release="handleRelease"
+              @refresh-stands="refreshStands"
+              @comment-change="handleCommentChange"
+            />
+          </div>
+          <div v-else class="relative p-4">
+            <button
+              @click="toggleGroup('frontend')"
+              class="w-full py-2 px-4 bg-slate-500 hover:bg-slate-300 rounded-2xl text-center transition-colors"
+            >
+              Показать блок Frontend
+            </button>
+          </div>
         </Transition>
 
+        <!-- Backend Group -->
         <Transition name="fade" mode="out-in">
-          <StandGroup
-            group-name="backend"
-            :stands="stands.backend"
-            :allow-comment-edit="true"
-            @occupy="handleOccupy"
-            @release="handleRelease"
-            @refresh-stands="refreshStands"
-            @comment-change="handleCommentChange"
-          />
+          <div v-if="isGroupVisible('backend')" class="relative">
+            <button
+              @click="toggleGroup('backend')"
+              class="absolute top-4 right-4 z-[100] bg-slate-500 hover:bg-slate-600 text-white rounded-2xl px-4 py-2 transition-colors"
+            >
+              Скрыть блок Backend
+            </button>
+            <StandGroup
+              group-name="backend"
+              :stands="stands.backend"
+              :allow-comment-edit="true"
+              @occupy="handleOccupy"
+              @release="handleRelease"
+              @refresh-stands="refreshStands"
+              @comment-change="handleCommentChange"
+            />
+          </div>
+          <div v-else class="relative p-4">
+            <button
+              @click="toggleGroup('backend')"
+              class="w-full py-2 px-4 bg-slate-500 hover:bg-slate-300 rounded-2xl text-center transition-colors"
+            >
+              Показать блок Backend
+            </button>
+          </div>
         </Transition>
       </div>
     </main>
@@ -249,6 +283,7 @@
 
 <script setup>
 import { useToast } from "primevue/usetoast";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 // Композаблы
@@ -271,6 +306,47 @@ const {
 const { user, isLoggedIn } = useUser();
 const router = useRouter();
 const toast = useToast();
+
+const groupVisibility = ref({
+  frontend: true,
+  backend: true,
+});
+
+onMounted(() => {
+  const savedState = localStorage.getItem("standGroupVisibility");
+  if (savedState) {
+    try {
+      groupVisibility.value = {
+        ...groupVisibility.value,
+        ...JSON.parse(savedState),
+      };
+    } catch (e) {
+      console.error("Failed to load group visibility state", e);
+    }
+  }
+});
+
+// Watch for changes and save to localStorage
+watch(
+  groupVisibility,
+  (newValue) => {
+    localStorage.setItem("standGroupVisibility", JSON.stringify(newValue));
+  },
+  { deep: true }
+);
+
+// Check if a group is visible
+const isGroupVisible = (group) => {
+  return groupVisibility.value[group] !== false; // Default to true if not set
+};
+
+// Toggle group visibility
+const toggleGroup = (group) => {
+  groupVisibility.value = {
+    ...groupVisibility.value,
+    [group]: !groupVisibility.value[group],
+  };
+};
 
 // Редирект на /login, если не залогинен
 if (!isLoggedIn.value) {
