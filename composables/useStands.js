@@ -320,19 +320,25 @@ export const useStands = () => {
 
   /**
    * Проверяет и сбрасывает просроченные стенды
+   * @param {boolean} forceFetch - принудительно обновить стенды после сброса
    */
-  const checkExpiredStands = async () => {
+  const checkExpiredStands = async (forceFetch = true) => {
     try {
       const response = await resetExpiredStands();
       if (response.resetCount > 0) {
         console.log(
           `Автоматически сброшено ${response.resetCount} просроченных стендов`
         );
-        // Обновляем состояние стендов после сброса
-        await fetchStands(false);
+        // Обновляем состояние стендов после сброса, только если требуется
+        if (forceFetch) {
+          await fetchStands(false);
+        }
+        return true;
       }
+      return false;
     } catch (err) {
       console.warn("Ошибка при проверке просроченных стендов:", err);
+      return false;
     }
   };
 
@@ -364,14 +370,26 @@ export const useStands = () => {
     }
   };
 
+  // Флаг для отслеживания инициализации
+  const isInitialized = ref(false);
+
   /**
    * Инициализация композабла
    */
   const initialize = async () => {
-    await fetchStands();
-    startPolling();
-    startExpiredCheck();
-    checkExpiredStands();
+    if (isInitialized.value) {
+      return; // Уже инициализировано
+    }
+
+    try {
+      await fetchStands();
+      startPolling();
+      startExpiredCheck();
+      isInitialized.value = true;
+    } catch (err) {
+      console.error("Ошибка при инициализации:", err);
+      throw err;
+    }
   };
 
   // Очистка при размонтировании

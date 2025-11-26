@@ -309,12 +309,14 @@ export const useSupabase = () => {
         .from("stands")
         .select("*")
         .not("ended_at", "is", null)
+        .not("ended_at", "is", "")
+        .not("ended_at", "is", undefined)
         .lte("ended_at", now);
 
       if (selectError) throw selectError;
 
       if (!expiredStands || expiredStands.length === 0) {
-        return { count: 0, stands: [] };
+        return;
       }
 
       // Сбрасываем просроченные стенды
@@ -327,6 +329,8 @@ export const useSupabase = () => {
           ended_at: null,
         })
         .not("ended_at", "is", null)
+        .not("ended_at", "is", "")
+        .not("ended_at", "is", undefined)
         .lte("ended_at", now)
         .select();
 
