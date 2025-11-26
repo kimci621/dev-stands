@@ -59,7 +59,7 @@
       v-if="props.groupName === 'backend' || true"
     >
       <!-- Табы для backend -->
-      <div
+      <!-- <div
         v-if="props.groupName === 'backend'"
         class="flex gap-2 bg-neutral-100 rounded-xl p-1 shadow-inner animate-fade-in"
       >
@@ -76,7 +76,7 @@
         >
           {{ tab }}
         </button>
-      </div>
+      </div> -->
       <!-- Поиск -->
       <div class="flex-1">
         <InputText
@@ -157,10 +157,10 @@
 </template>
 
 <script setup>
-import { useToast } from "primevue/usetoast";
-import { ref, computed } from "vue";
-import RadioButton from "primevue/radiobutton";
 import InputText from "primevue/inputtext";
+import RadioButton from "primevue/radiobutton";
+import { useToast } from "primevue/usetoast";
+import { computed, ref } from "vue";
 
 // Props
 const props = defineProps({
@@ -177,6 +177,18 @@ const props = defineProps({
     default: true,
   },
 });
+
+const showBackendUuids = [
+  "6079131b-2aef-4381-b6e5-5c3727a6c5df",
+  "5ed0cbea-de98-48aa-ad46-03073c9da847",
+  "230a1929-0b8e-4132-b900-2af65db867ad",
+  "61c9111b-755a-41f2-bb3f-9e42b8ebd0f3",
+  "31e7ae19-4e0c-478d-b592-5c9ab1a2950a",
+  "50c6a73a-83e1-4a76-9893-2f60004c9eb5",
+  "2591bcb8-5e8f-488c-ac4a-d499e22d6831",
+  "d05cff2c-c0de-4b70-b89c-47172b9383e3",
+  "a3c60d20-e5e1-47f2-8403-d46bc7fe1e7d",
+];
 
 // Emits
 const emit = defineEmits([
@@ -203,14 +215,24 @@ const groupTitle = computed(() => {
 /**
  * Статистика стендов в группе (мемоизировано для предотвращения дёргания)
  */
-const totalStands = computed(() => props.stands.length);
+const tempFilteredStands = computed(() => {
+  if (props.groupName === "backend") {
+    return props.stands?.filter((s) => showBackendUuids.includes(s.id)) || [];
+  }
+  return props.stands || [];
+});
+
+const totalStands = computed(() => tempFilteredStands.value.length);
 
 const freeStands = computed(
-  () => props.stands.filter((stand) => stand.status === "free").length
+  () =>
+    tempFilteredStands.value.filter((stand) => stand.status === "free").length
 );
 
 const occupiedStands = computed(
-  () => props.stands.filter((stand) => stand.status === "occupied").length
+  () =>
+    tempFilteredStands.value.filter((stand) => stand.status === "occupied")
+      .length
 );
 
 const occupancyPercentage = computed(() => {
@@ -230,6 +252,10 @@ const searchQuery = ref("");
  */
 const filteredStands = computed(() => {
   let stands = props.stands;
+  // Временная фильтрация бля бэка чтобы были только Dev стенды без api, october
+  if (props.groupName === "backend") {
+    stands = stands.filter((s) => showBackendUuids.includes(s.id));
+  }
   // Фильтрация по табу (только для backend)
   if (props.groupName === "backend" && selectedTab.value !== "Все") {
     stands = stands.filter((s) =>
