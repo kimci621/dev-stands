@@ -216,9 +216,9 @@ const groupTitle = computed(() => {
  * Статистика стендов в группе (мемоизировано для предотвращения дёргания)
  */
 const tempFilteredStands = computed(() => {
-  if (props.groupName === "backend") {
-    return props.stands?.filter((s) => showBackendUuids.includes(s.id)) || [];
-  }
+  // if (props.groupName === "backend") {
+  //   return props.stands?.filter((s) => showBackendUuids.includes(s.id)) || [];
+  // }
   return props.stands || [];
 });
 
