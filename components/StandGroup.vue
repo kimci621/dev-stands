@@ -253,9 +253,9 @@ const searchQuery = ref("");
 const filteredStands = computed(() => {
   let stands = props.stands;
   // Временная фильтрация бля бэка чтобы были только Dev стенды без api, october
-  if (props.groupName === "backend") {
-    stands = stands.filter((s) => showBackendUuids.includes(s.id));
-  }
+  // if (props.groupName === "backend") {
+  //   stands = stands.filter((s) => showBackendUuids.includes(s.id));
+  // }
   // Фильтрация по табу (только для backend)
   if (props.groupName === "backend" && selectedTab.value !== "Все") {
     stands = stands.filter((s) =>
