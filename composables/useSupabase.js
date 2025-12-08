@@ -2,6 +2,45 @@ import { createClient } from "@supabase/supabase-js";
 
 let supabase = null;
 
+const DEFAULT_STANDS = [
+	// Frontend стенды
+	{ name: "FE Dev", type: "frontend", status: "Свободен" },
+	{ name: "FE Dev2", type: "frontend", status: "Свободен" },
+	{ name: "FE Dev3", type: "frontend", status: "Свободен" },
+	{ name: "FE Dev4", type: "frontend", status: "Свободен" },
+	{ name: "FE Dev5", type: "frontend", status: "Свободен" },
+	{ name: "FE Dev6", type: "frontend", status: "Свободен" },
+	{ name: "FE Dev7", type: "frontend", status: "Свободен" },
+	{ name: "FE AWS Dev", type: "frontend", status: "Свободен" },
+	{
+		name: "FE LoadTest",
+		type: "frontend",
+		status: "Свободен",
+	},
+	// BE стенды
+	{
+		name: "BE Deploy LoadTest",
+		type: "backend",
+		status: "Свободен",
+	},
+	{ name: "BE Dev", type: "backend", status: "Свободен" },
+	{ name: "BE Dev2", type: "backend", status: "Свободен" },
+	{ name: "BE Dev3", type: "backend", status: "Свободен" },
+	{ name: "BE Dev4", type: "backend", status: "Свободен" },
+	{ name: "BE Dev5", type: "backend", status: "Свободен" },
+	{ name: "BE Dev6", type: "backend", status: "Свободен" },
+	{ name: "BE Dev7", type: "backend", status: "Свободен" },
+	{ name: "BE Dev", type: "backend", status: "Свободен" },
+	{
+		name: "BE LoadTest",
+		type: "backend",
+		status: "Свободен",
+	},
+	{ name: "BE Mobile1", type: "backend", status: "Свободен" },
+	{ name: "BE Mobile2", type: "backend", status: "Свободен" },
+	{ name: "BE Mobile3", type: "backend", status: "Свободен" },
+];
+
 /**
  * Инициализация клиента Supabase
  */
@@ -141,72 +180,7 @@ export const useSupabase = () => {
         .delete()
         .neq("id", "00000000-0000-0000-0000-000000000000");
 
-      // Создаем новые стенды
-      const defaultStands = [
-        // Frontend стенды
-        { name: "FE Deploy Dev", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev2", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev3", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev4", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev5", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev6", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev7", type: "frontend", status: "Свободен" },
-        { name: "FE AWS Dev", type: "frontend", status: "Свободен" },
-        {
-          name: "FE Deploy LoadTest",
-          type: "frontend",
-          status: "Свободен",
-        },
-        // BE стенды
-        {
-          name: "BE Deploy LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-        { name: "BE Deploy Dev", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev2", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev3", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev4", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev5", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev6", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev7", type: "backend", status: "Свободен" },
-        { name: "BE AWS Dev", type: "backend", status: "Свободен" },
-        {
-          name: "BE Deploy LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-        // BE стенды API-4
-        { name: "BE API-4 Dev", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev2", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev3", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev4", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev5", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev6", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev7", type: "backend", status: "Свободен" },
-        { name: "BE API-4 AWS Dev", type: "backend", status: "Свободен" },
-        {
-          name: "BE API-4 LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-        // BE стенды OCTOBER
-        { name: "BE OCTOBER Dev", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev2", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev3", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev4", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev5", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev6", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev7", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER AWS Dev", type: "backend", status: "Свободен" },
-        {
-          name: "BE OCTOBER LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-      ];
-
-      const { error } = await supabase.from("stands").insert(defaultStands);
+      const { error } = await supabase.from("stands").insert(DEFAULT_STANDS);
 
       if (error) throw error;
       console.log("Stands recreated with proper frontend/backend separation");
@@ -228,73 +202,8 @@ export const useSupabase = () => {
         .from("stands")
         .delete()
         .neq("id", "00000000-0000-0000-0000-000000000000");
-
-      // Создаем дефолтные стенды
-      const defaultStands = [
-        // Frontend стенды
-        { name: "FE Deploy Dev", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev2", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev3", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev4", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev5", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev6", type: "frontend", status: "Свободен" },
-        { name: "FE Deploy Dev7", type: "frontend", status: "Свободен" },
-        { name: "FE AWS Dev", type: "frontend", status: "Свободен" },
-        {
-          name: "FE Deploy LoadTest",
-          type: "frontend",
-          status: "Свободен",
-        },
-        // BE стенды
-        {
-          name: "BE Deploy LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-        { name: "BE Deploy Dev", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev2", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev3", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev4", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev5", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev6", type: "backend", status: "Свободен" },
-        { name: "BE Deploy Dev7", type: "backend", status: "Свободен" },
-        { name: "BE AWS Dev", type: "backend", status: "Свободен" },
-        {
-          name: "BE Deploy LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-        // BE стенды API-4
-        { name: "BE API-4 Dev", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev2", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev3", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev4", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev5", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev6", type: "backend", status: "Свободен" },
-        { name: "BE API-4 Dev7", type: "backend", status: "Свободен" },
-        { name: "BE API-4 AWS Dev", type: "backend", status: "Свободен" },
-        {
-          name: "BE API-4 LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-        // BE стенды OCTOBER
-        { name: "BE OCTOBER Dev", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev2", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev3", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev4", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev5", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev6", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER Dev7", type: "backend", status: "Свободен" },
-        { name: "BE OCTOBER AWS Dev", type: "backend", status: "Свободен" },
-        {
-          name: "BE OCTOBER LoadTest",
-          type: "backend",
-          status: "Свободен",
-        },
-      ];
-
-      const { error } = await supabase.from("stands").insert(defaultStands);
+			
+      const { error } = await supabase.from("stands").insert(DEFAULT_STANDS);
 
       if (error) throw error;
       console.log("Default stands created with proper frontend/backend types");
