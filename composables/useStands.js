@@ -348,10 +348,10 @@ export const useStands = () => {
   const startExpiredCheck = () => {
     if (expiredCheckInterval) return;
 
-    expiredCheckInterval = setInterval(
-      checkExpiredStands,
-      EXPIRED_CHECK_INTERVAL
-    );
+    // expiredCheckInterval = setInterval(
+    //   checkExpiredStands,
+    //   EXPIRED_CHECK_INTERVAL
+    // );
     console.log(
       "Проверка просроченных стендов запущена с интервалом",
       EXPIRED_CHECK_INTERVAL,
