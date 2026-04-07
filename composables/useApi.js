@@ -82,23 +82,11 @@ export const useApi = () => {
   };
 
   /**
-   * Выполняет сброс всех стендов
-   * @returns {Promise<Object>} ответ сервера
-   */
-  const resetStands = async () => {
-    return await post("/stands/reset");
-  };
-
-  /**
    * Выполняет сброс просроченных стендов
    * @returns {Promise<Object>} ответ сервера
    */
   const resetExpiredStands = async () => {
     return await post("/stands/reset-expired");
-  };
-
-  const recreateStands = async () => {
-    return await post("/stands/recreate");
   };
 
   /**
@@ -116,9 +104,7 @@ export const useApi = () => {
     register,
     getStands,
     updateStand,
-    resetStands,
     resetExpiredStands,
-    recreateStands,
     healthCheck,
   };
 };

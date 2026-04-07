@@ -1,12 +1,6 @@
 // Композабл для управления стендами
 export const useStands = () => {
-  const {
-    getStands,
-    updateStands,
-    resetStands,
-    resetExpiredStands,
-    recreateStands,
-  } = useApi();
+  const { getStands, resetExpiredStands } = useApi();
   const { user } = useUser();
 
   // Реактивное состояние
@@ -22,7 +16,8 @@ export const useStands = () => {
 
   // Интервал для polling
   let pollingInterval = null;
-  const POLLING_INTERVAL = 10000; // 10 секунд
+  const POLLING_INTERVAL = 30000; // 30 секунд
+  let isFetchingStands = false;
 
   // Интервал для проверки просроченных стендов
   let expiredCheckInterval = null;
@@ -33,7 +28,13 @@ export const useStands = () => {
    * @param {boolean} showLoading - показывать ли индикатор загрузки
    */
   const fetchStands = async (showLoading = true) => {
+    if (isFetchingStands) {
+      return;
+    }
+
     try {
+      isFetchingStands = true;
+
       if (showLoading) {
         isLoading.value = true;
       }
@@ -65,6 +66,8 @@ export const useStands = () => {
         console.error("Ошибка при загрузке стендов:", err);
       }
     } finally {
+      isFetchingStands = false;
+
       if (showLoading) {
         isLoading.value = false;
       }
@@ -229,24 +232,6 @@ export const useStands = () => {
   };
 
   /**
-   * Выполняет полный сброс всех стендов
-   */
-  const performReset = async () => {
-    try {
-      isLoading.value = true;
-      const response = await resetStands();
-      stands.value = response.stands;
-      lastReset.value = response.lastReset;
-      console.log("Выполнен сброс всех стендов");
-    } catch (err) {
-      error.value = err.message;
-      console.error("Ошибка при сбросе стендов:", err);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  /**
    * Получает все стенды, занятые текущим пользователем
    * @returns {Array} массив занятых стендов
    */
@@ -297,6 +282,10 @@ export const useStands = () => {
 
     pollingInterval = setInterval(async () => {
       try {
+        if (process.client && document.hidden) {
+          return;
+        }
+
         // Скрытое обновление без показа индикатора загрузки
         await fetchStands(false);
       } catch (err) {
@@ -415,11 +404,8 @@ export const useStands = () => {
     occupyStand,
     releaseStand,
     setComment,
-    performReset,
     findStandById,
     initialize,
-    recreateStands,
-    updateStands,
 
     // Управление polling
     startPolling,

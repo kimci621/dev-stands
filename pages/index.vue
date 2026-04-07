@@ -297,10 +297,9 @@ const {
   getStatistics,
   occupyStand,
   releaseStand,
-  performReset,
   initialize,
-  recreateStands,
   setComment,
+  fetchStands,
 } = useStands();
 
 const { user, isLoggedIn } = useUser();
@@ -440,30 +439,6 @@ const handleCommentChange = async (standId, comment) => {
   }
 };
 
-/**
- * Обрабатывает принудительный сброс всех стендов
- */
-const handleManualReset = async () => {
-  try {
-    // await performReset();
-    toast.add({
-      severity: "info",
-      summary: "Сброс выполнен",
-      detail: "Все стенды были сброшены",
-      life: 5000,
-    });
-  } catch (err) {
-    toast.add({
-      severity: "error",
-      summary: "Ошибка",
-      detail: err.message || "Не удалось выполнить сброс",
-      life: 5000,
-    });
-  }
-};
-
-// Обновление списка стендов после изменения ссылки на задачу
-const { fetchStands } = useStands();
 async function refreshStands() {
   await fetchStands();
 }
@@ -476,13 +451,6 @@ onMounted(async () => {
     console.error("Ошибка инициализации:", err);
   }
 
-  if (!window?.handleManualReset) {
-    window.handleManualReset = handleManualReset;
-  }
-
-  if (!window?.recreateStands) {
-    window.recreateStands = recreateStands;
-  }
 });
 
 // Мета-теги для страницы

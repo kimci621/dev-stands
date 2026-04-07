@@ -2,6 +2,10 @@
 // Работа с Supabase
 
 import { useSupabase } from "~/composables/useSupabase";
+import {
+  getAuditRequestContext,
+  writeAuditLog,
+} from "~/server/utils/auditLog";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,7 +19,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const { updateStand } = useSupabase();
+    const { getStandById, updateStand } = useSupabase();
 
     let updates = {};
 
@@ -88,8 +92,20 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    const previousStand = await getStandById(standId);
+
     // Обновляем стенд
     const updatedStand = await updateStand(standId, updates);
+
+    await writeAuditLog({
+      event: `stands.${action}`,
+      standId,
+      userEmail: user?.email || null,
+      request: getAuditRequestContext(event),
+      previousStand,
+      updatedStand,
+      updates,
+    });
 
     return {
       success: true,

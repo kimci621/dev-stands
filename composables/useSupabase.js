@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 
 let supabase = null;
 
+const getStandKey = (stand) => `${stand.type}::${stand.name}`;
+
 const DEFAULT_STANDS = [
 	// Frontend стенды
 	{ name: "FE Dev", type: "frontend", status: "Свободен" },
@@ -30,7 +32,7 @@ const DEFAULT_STANDS = [
 	{ name: "BE Dev5", type: "backend", status: "Свободен" },
 	{ name: "BE Dev6", type: "backend", status: "Свободен" },
 	{ name: "BE Dev7", type: "backend", status: "Свободен" },
-	{ name: "BE Dev", type: "backend", status: "Свободен" },
+	{ name: "BE Dev8", type: "backend", status: "Свободен" },
 	{
 		name: "BE LoadTest",
 		type: "backend",
@@ -40,6 +42,10 @@ const DEFAULT_STANDS = [
 	{ name: "BE Mobile2", type: "backend", status: "Свободен" },
 	{ name: "BE Mobile3", type: "backend", status: "Свободен" },
 ];
+
+const UNIQUE_DEFAULT_STANDS = Array.from(
+  new Map(DEFAULT_STANDS.map((stand) => [getStandKey(stand), stand])).values()
+);
 
 /**
  * Инициализация клиента Supabase
@@ -157,56 +163,50 @@ export const useSupabase = () => {
       return data;
     },
 
-    async resetAllStands() {
+    async getStandById(standId) {
       const { data, error } = await supabase
         .from("stands")
-        .update({
-          status: "Свободен",
-          occupied_by: null,
-          occupied_at: null,
-        })
-        .neq("id", "00000000-0000-0000-0000-000000000000") // Обновляем все записи
-        .select();
+        .select("*")
+        .eq("id", standId)
+        .single();
 
       if (error) throw error;
       return data;
     },
 
-    // Метод для принудительного пересоздания стендов
-    async recreateStands() {
-      // Удаляем все существующие стенды
-      await supabase
+    // Метод для безопасной инициализации данных без удаления существующих записей
+    async ensureDefaultStands() {
+      const { data: existingStands, error: existingError } = await supabase
         .from("stands")
-        .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000");
+        .select("name, type");
 
-      const { error } = await supabase.from("stands").insert(DEFAULT_STANDS);
+      if (existingError) throw existingError;
+
+      const existingKeys = new Set(
+        (existingStands || []).map((stand) => getStandKey(stand))
+      );
+
+      const missingStands = UNIQUE_DEFAULT_STANDS.filter(
+        (stand) => !existingKeys.has(getStandKey(stand))
+      );
+
+      if (missingStands.length === 0) {
+        return {
+          inserted: 0,
+          skipped: UNIQUE_DEFAULT_STANDS.length,
+        };
+      }
+
+      const { error } = await supabase.from("stands").insert(missingStands);
 
       if (error) throw error;
-      console.log("Stands recreated with proper frontend/backend separation");
-      return true;
-    },
 
-    // Метод для инициализации данных
-    async initializeDefaultData() {
-      // Проверяем, есть ли уже стенды с правильными типами
-      const { data: existingStands } = await supabase
-        .from("stands")
-        .select("type")
-        .in("type", ["frontend", "backend"]);
+      console.log(`Added ${missingStands.length} missing default stands`);
 
-      if (existingStands && existingStands.length > 0) return; // Данные уже есть
-
-      // Удаляем старые стенды с некорректными типами
-      await supabase
-        .from("stands")
-        .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000");
-			
-      const { error } = await supabase.from("stands").insert(DEFAULT_STANDS);
-
-      if (error) throw error;
-      console.log("Default stands created with proper frontend/backend types");
+      return {
+        inserted: missingStands.length,
+        skipped: UNIQUE_DEFAULT_STANDS.length - missingStands.length,
+      };
     },
 
     // Метод для сброса просроченных стендов
@@ -225,7 +225,10 @@ export const useSupabase = () => {
       if (selectError) throw selectError;
 
       if (!expiredStands || expiredStands.length === 0) {
-        return;
+        return {
+          count: 0,
+          stands: [],
+        };
       }
 
       // Сбрасываем просроченные стенды

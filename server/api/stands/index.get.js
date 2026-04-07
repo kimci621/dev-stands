@@ -2,13 +2,26 @@
 // Работа с Supabase
 
 import { useSupabase } from "~/composables/useSupabase";
+import {
+  getAuditRequestContext,
+  writeAuditLog,
+} from "~/server/utils/auditLog";
 
 export default defineEventHandler(async (event) => {
   try {
-    const { getStands, initializeDefaultData } = useSupabase();
+    const { getStands, ensureDefaultStands } = useSupabase();
 
-    // Инициализируем дефолтные данные если их нет
-    await initializeDefaultData();
+    const initResult = await ensureDefaultStands();
+
+    if (initResult.inserted > 0) {
+      await writeAuditLog({
+        event: "stands.ensure-defaults",
+        source: "server/api/stands/index.get",
+        inserted: initResult.inserted,
+        skipped: initResult.skipped,
+        request: getAuditRequestContext(event),
+      });
+    }
 
     // Получаем стенды
     const result = await getStands();
