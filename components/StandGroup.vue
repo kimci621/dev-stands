@@ -1,131 +1,71 @@
 <template>
-  <div class="stand-group animate-slide-up">
-    <!-- Заголовок группы -->
-    <div class="group-header">
-      <h2
-        class="text-3xl font-bold text-neutral-800 mb-4 flex items-center gap-3"
-      >
-        <div
-          class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-medium"
-        >
-          <i class="pi pi-server text-white text-lg"></i>
-        </div>
-        {{ groupTitle }}
-      </h2>
-
-      <!-- Статистика группы -->
-      <div class="flex items-center gap-6 mb-6">
-        <div
-          class="stat-item bg-white/70 backdrop-blur-sm rounded-xl p-3 shadow-soft"
-        >
-          <span class="stat-label">Всего:</span>
-          <span class="stat-value text-primary-700">{{ totalStands }}</span>
-        </div>
-
-        <div
-          class="stat-item bg-white/70 backdrop-blur-sm rounded-xl p-3 shadow-soft"
-        >
-          <span class="stat-label">Свободно:</span>
-          <span class="stat-value text-stand-free-700">{{ freeStands }}</span>
-        </div>
-
-        <div
-          class="stat-item bg-white/70 backdrop-blur-sm rounded-xl p-3 shadow-soft"
-        >
-          <span class="stat-label">Занято:</span>
-          <span class="stat-value text-stand-occupied-700">{{
-            occupiedStands
-          }}</span>
-        </div>
-
-        <!-- Прогресс-бар заполненности -->
-        <div class="flex-1 ml-6">
-          <div class="w-full bg-neutral-200 rounded-full h-3 shadow-inner">
-            <div
-              class="bg-gradient-to-r from-stand-occupied-500 to-stand-occupied-600 h-3 rounded-full transition-all duration-500 shadow-soft"
-              :style="{ width: `${occupancyPercentage}%` }"
-            ></div>
+  <section class="stand-group">
+    <div class="mb-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+      <div>
+        <div class="mb-3 flex items-center gap-3">
+          <div
+            class="grid h-10 w-10 place-items-center rounded-2xl border border-brand-pink/25 bg-brand-pink/15 text-brand-pink"
+          >
+            <i class="pi pi-server"></i>
           </div>
-          <span class="text-sm text-neutral-600 mt-2 font-medium">
-            {{ occupancyPercentage }}% занятости
+          <div>
+            <h2 class="text-2xl font-black tracking-normal text-white">
+              {{ groupTitle }}
+            </h2>
+            <p class="text-sm text-slate-400">
+              {{ freeStands }} свободно из {{ totalStands }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <span class="stat-chip border-white/10 bg-white/[0.04] text-slate-200">
+            Всего {{ totalStands }}
+          </span>
+          <span class="stat-chip border-brand-teal/35 bg-brand-teal/20 text-teal-100">
+            Свободно {{ freeStands }}
+          </span>
+          <span class="stat-chip border-brand-pink/35 bg-brand-wine/55 text-pink-100">
+            Занято {{ occupiedStands }}
+          </span>
+          <span class="stat-chip border-white/10 bg-white/[0.04] text-slate-300">
+            {{ occupancyPercentage }}%
           </span>
         </div>
       </div>
+
+      <div class="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
+        <div class="relative min-w-0 lg:w-[360px]">
+          <i class="pi pi-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+          <InputText
+            v-model="searchQuery"
+            placeholder="Поиск по стенду, владельцу, задаче"
+            class="w-full rounded-2xl border-white/10 bg-surface-850/80 py-3 pl-11 pr-4 text-sm"
+          />
+        </div>
+
+        <div class="segmented-control">
+          <button
+            v-for="option in statusOptions"
+            :key="option.value"
+            class="segmented-button"
+            :class="{ 'segmented-button-active': statusFilter === option.value }"
+            @click="statusFilter = option.value"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Фильтры -->
-    <div
-      class="flex flex-wrap items-center gap-6 mb-6"
-      v-if="props.groupName === 'backend' || true"
-    >
-      <!-- Табы для backend -->
-      <!-- <div
-        v-if="props.groupName === 'backend'"
-        class="flex gap-2 bg-neutral-100 rounded-xl p-1 shadow-inner animate-fade-in"
-      >
-        <button
-          v-for="tab in tabs"
-          :key="tab"
-          @click="selectedTab = tab"
-          :class="[
-            'px-4 py-2 rounded-lg font-medium transition-all duration-200',
-            selectedTab === tab
-              ? 'bg-primary-500 text-white shadow-md scale-105'
-              : 'text-neutral-700 hover:bg-primary-100 hover:text-primary-700',
-          ]"
-        >
-          {{ tab }}
-        </button>
-      </div> -->
-      <!-- Поиск -->
-      <div class="flex-1">
-        <InputText
-          v-model="searchQuery"
-          placeholder="Поиск"
-          class="min-w-[320px]"
-        />
-      </div>
-      <!-- Радиогруппа для фильтрации по статусу -->
+    <div class="mb-5 h-2 overflow-hidden rounded-full bg-white/[0.05]">
       <div
-        class="flex items-center gap-4 bg-neutral-100 rounded-xl px-3 py-2 shadow-inner animate-fade-in"
-      >
-        <RadioButton
-          v-model="statusFilter"
-          inputId="statusAll"
-          value="all"
-          class="!w-5 !h-5"
-        />
-        <label
-          for="statusAll"
-          class="font-medium cursor-pointer select-none text-neutral-700"
-          >Все</label
-        >
-        <RadioButton
-          v-model="statusFilter"
-          inputId="statusFree"
-          value="free"
-          class="!w-5 !h-5"
-        />
-        <label
-          for="statusFree"
-          class="font-medium cursor-pointer select-none text-neutral-700"
-          >Свободные</label
-        >
-        <RadioButton
-          v-model="statusFilter"
-          inputId="statusOccupied"
-          value="occupied"
-          class="!w-5 !h-5"
-        />
-        <label
-          for="statusOccupied"
-          class="font-medium cursor-pointer select-none text-neutral-700"
-          >Занятые</label
-        >
-      </div>
+        class="h-full rounded-full bg-gradient-to-r from-brand-pink to-brand-teal transition-all duration-500"
+        :style="{ width: `${occupancyPercentage}%` }"
+      ></div>
     </div>
-    <!-- Список стендов -->
-    <div class="stands-grid">
+
+    <div v-if="filteredStands.length > 0" class="stands-grid">
       <StandCard
         v-for="stand in filteredStands"
         :key="stand.key"
@@ -141,28 +81,23 @@
       />
     </div>
 
-    <!-- Пустое состояние -->
-    <div v-if="stands.length === 0" class="empty-state">
+    <div v-else class="empty-state">
       <div
-        class="w-20 h-20 bg-gradient-to-br from-neutral-200 to-neutral-300 rounded-full flex items-center justify-center mb-6"
+        class="mb-4 grid h-16 w-16 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-500"
       >
-        <i class="pi pi-server text-4xl text-neutral-400"></i>
+        <i class="pi pi-search text-2xl"></i>
       </div>
-      <p class="text-neutral-500 text-xl font-medium">Стенды отсутствуют</p>
-      <p class="text-neutral-400 text-sm mt-2">
-        Добавьте стенды для начала работы
-      </p>
+      <p class="text-lg font-black text-white">Ничего не найдено</p>
+      <p class="mt-1 text-sm text-slate-400">Измените поиск или фильтр статуса.</p>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
 import InputText from "primevue/inputtext";
-import RadioButton from "primevue/radiobutton";
 import { useToast } from "primevue/usetoast";
 import { computed, ref } from "vue";
 
-// Props
 const props = defineProps({
   groupName: {
     type: String,
@@ -178,19 +113,6 @@ const props = defineProps({
   },
 });
 
-const showBackendUuids = [
-  "6079131b-2aef-4381-b6e5-5c3727a6c5df",
-  "5ed0cbea-de98-48aa-ad46-03073c9da847",
-  "230a1929-0b8e-4132-b900-2af65db867ad",
-  "61c9111b-755a-41f2-bb3f-9e42b8ebd0f3",
-  "31e7ae19-4e0c-478d-b592-5c9ab1a2950a",
-  "50c6a73a-83e1-4a76-9893-2f60004c9eb5",
-  "2591bcb8-5e8f-488c-ac4a-d499e22d6831",
-  "d05cff2c-c0de-4b70-b89c-47172b9383e3",
-  "a3c60d20-e5e1-47f2-8403-d46bc7fe1e7d",
-];
-
-// Emits
 const emit = defineEmits([
   "occupy",
   "release",
@@ -198,12 +120,8 @@ const emit = defineEmits([
   "comment-change",
 ]);
 
-// Композаблы
 const toast = useToast();
 
-/**
- * Заголовок группы
- */
 const groupTitle = computed(() => {
   const titles = {
     frontend: "Фронтенд стенды",
@@ -212,15 +130,7 @@ const groupTitle = computed(() => {
   return titles[props.groupName] || props.groupName;
 });
 
-/**
- * Статистика стендов в группе (мемоизировано для предотвращения дёргания)
- */
-const tempFilteredStands = computed(() => {
-  // if (props.groupName === "backend") {
-  //   return props.stands?.filter((s) => showBackendUuids.includes(s.id)) || [];
-  // }
-  return props.stands || [];
-});
+const tempFilteredStands = computed(() => props.stands || []);
 
 const totalStands = computed(() => tempFilteredStands.value.length);
 
@@ -240,62 +150,54 @@ const occupancyPercentage = computed(() => {
   return Math.round((occupiedStands.value / totalStands.value) * 100);
 });
 
-// Табы для backend-группы
-const tabs = ["Все", "Deploy", "API-4", "October"];
-const selectedTab = ref("Все");
-// Состояние радиогруппы для фильтрации по статусу
+const statusOptions = [
+  { value: "all", label: "Все" },
+  { value: "free", label: "Свободные" },
+  { value: "occupied", label: "Занятые" },
+];
+
 const statusFilter = ref("all");
-// Состояние поиска
 const searchQuery = ref("");
-/**
- * Фильтрует стенды по выбранному табу и статусу
- */
+
 const filteredStands = computed(() => {
-  let stands = props.stands;
-  // Временная фильтрация бля бэка чтобы были только Dev стенды без api, october
-  // if (props.groupName === "backend") {
-  //   stands = stands.filter((s) => showBackendUuids.includes(s.id));
-  // }
-  // Фильтрация по табу (только для backend)
-  if (props.groupName === "backend" && selectedTab.value !== "Все") {
-    stands = stands.filter((s) =>
-      s.name?.toLowerCase().includes(selectedTab.value.toLowerCase())
-    );
-  }
-  // Фильтрация по статусу
+  let stands = props.stands || [];
+
   if (statusFilter.value === "free") {
-    stands = stands.filter((s) => s.status === "free");
+    stands = stands.filter((stand) => stand.status === "free");
   } else if (statusFilter.value === "occupied") {
-    stands = stands.filter((s) => s.status === "occupied");
+    stands = stands.filter((stand) => stand.status === "occupied");
   }
-  // Фильтрация по поиску
-  if (searchQuery.value) {
-    stands = stands.filter((s) =>
-      s.name?.toLowerCase().includes(searchQuery.value.toLowerCase().trim())
-    );
+
+  const query = searchQuery.value.toLowerCase().trim();
+  if (query) {
+    stands = stands.filter((stand) => {
+      const searchable = [
+        stand.name,
+        stand.type,
+        stand.occupiedBy,
+        stand.occupied_by,
+        stand.task_url,
+        stand.comment,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchable.includes(query);
+    });
   }
-  // Мемоизация ключа для StandCard
+
   return stands.map((stand) => ({
     ...stand,
-    key: `${stand.id}-${stand.status}-${stand.occupiedBy || "free"}`,
+    key: `${stand.id}-${stand.status}-${stand.occupiedBy || "free"}-${
+      stand.ended_at || "no-end"
+    }-${stand.comment || "no-comment"}`,
   }));
 });
 
-/**
- * Обрабатывает занятие стенда
- * @param {number} standId - ID стенда
- */
 const handleOccupy = async (standId) => {
   try {
     emit("occupy", standId);
-
-    const stand = props.stands.find((s) => s.id === standId);
-    toast.add({
-      severity: "success",
-      summary: "Успех",
-      detail: `Стенд "${stand?.name}" успешно занят`,
-      life: 3000,
-    });
   } catch (error) {
     toast.add({
       severity: "error",
@@ -306,21 +208,9 @@ const handleOccupy = async (standId) => {
   }
 };
 
-/**
- * Обрабатывает освобождение стенда
- * @param {number} standId - ID стенда
- */
 const handleRelease = async (standId) => {
   try {
     emit("release", standId);
-
-    const stand = props.stands.find((s) => s.id === standId);
-    toast.add({
-      severity: "info",
-      summary: "Освобождено",
-      detail: `Стенд "${stand?.name}" освобожден`,
-      life: 3000,
-    });
   } catch (error) {
     toast.add({
       severity: "error",
@@ -331,17 +221,14 @@ const handleRelease = async (standId) => {
   }
 };
 
-// Обработка обновления/удаления ссылки на задачу
 function handleTaskUrlChanged(e) {
-  // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
   emit("refresh-stands", e);
 }
-// Обработка обновления/удаления времени окончания
+
 function handleEndedAtChanged(e) {
-  // Пробрасываем событие наверх, чтобы родитель мог обновить список стендов
   emit("refresh-stands", e);
 }
-// Обработка изменения комментария
+
 function handleCommentChange(standId, comment) {
   emit("comment-change", standId, comment);
 }
@@ -349,94 +236,45 @@ function handleCommentChange(standId, comment) {
 
 <style scoped>
 .stand-group {
-  @apply bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft border border-white/50 p-8;
+  @apply rounded-[1.4rem] border border-white/10 bg-surface-900/75 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5;
 }
 
-.group-header {
-  @apply border-b border-neutral-200/50 pb-6 mb-8;
+.stat-chip {
+  @apply inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-black;
 }
 
-.stat-item {
-  @apply flex items-center gap-2 transition-all duration-300 hover:shadow-medium hover:scale-105;
+.segmented-control {
+  @apply flex rounded-2xl border border-white/10 bg-white/[0.04] p-1;
 }
 
-.stat-label {
-  @apply text-sm text-neutral-600 font-medium;
+.segmented-button {
+  @apply rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition hover:text-white;
 }
 
-.stat-value {
-  @apply text-xl font-bold;
+.segmented-button-active {
+  @apply bg-brand-pink text-brand-wine shadow-lg shadow-brand-pink/20 hover:text-brand-wine;
 }
 
 .stands-grid {
-  @apply grid gap-6;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  column-count: 2;
+  column-gap: 14px;
 }
 
 .empty-state {
-  @apply flex
-    flex-col
-    items-center
-    justify-center
-    py-16
-    text-center;
+  @apply flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] py-16 text-center;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .stands-grid {
-    grid-template-columns: 1fr;
+    column-count: 1;
   }
 
-  .group-header {
-    @apply pb-4 mb-6;
+  .segmented-control {
+    @apply overflow-x-auto;
   }
 
-  .stat-item {
-    @apply p-2;
+  .segmented-button {
+    @apply whitespace-nowrap;
   }
-
-  .stat-value {
-    @apply text-lg;
-  }
-}
-
-/* Анимации */
-.stand-group {
-  animation: slideUp 0.5s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in {
-  animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.p-inputtext {
-  background-color: #fff !important;
-  border: 1px solid #e0e0e0 !important;
-  border-radius: 10px !important;
-  padding: 10px !important;
-  font-size: 16px !important;
-  font-weight: 500 !important;
-  color: #333 !important;
 }
 </style>

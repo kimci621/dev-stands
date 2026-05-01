@@ -2,6 +2,21 @@
 export const useApi = () => {
   // Всегда используем встроенные Nuxt API routes
   const baseUrl = "/api";
+  const REQUEST_TIMEOUT = 10000;
+
+  const fetchWithTimeout = async (url, options = {}) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+    try {
+      return await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
 
   /**
    * Выполняет GET запрос к API
@@ -10,7 +25,7 @@ export const useApi = () => {
    */
   const get = async (endpoint) => {
     try {
-      const response = await fetch(`${baseUrl}${endpoint}`);
+      const response = await fetchWithTimeout(`${baseUrl}${endpoint}`);
 
       if (!response.ok) {
         throw new Error(`HTTP ошибка! статус: ${response.status}`);
@@ -31,7 +46,7 @@ export const useApi = () => {
    */
   const post = async (endpoint, data = {}) => {
     try {
-      const response = await fetch(`${baseUrl}${endpoint}`, {
+      const response = await fetchWithTimeout(`${baseUrl}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

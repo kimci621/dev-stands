@@ -40,8 +40,19 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background-color: #f9fafb;
-  color: #1f2937;
+  background:
+    radial-gradient(
+      circle at 18% 0%,
+      rgba(218, 123, 147, 0.16),
+      transparent 32rem
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(55, 110, 111, 0.2),
+      transparent 30rem
+    ),
+    #071012;
+  color: #edf7f8;
   line-height: 1.6;
 }
 
@@ -52,18 +63,18 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #0b171a;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #376e6f;
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #da7b93;
 }
 
 /* Фокус для доступности */
@@ -98,34 +109,69 @@ textarea:focus-visible {
 }
 
 .p-toast .p-toast-message {
-  border-radius: 8px;
+  border-radius: 16px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: #0b171a;
+  color: #edf7f8;
+  border: 1px solid rgba(218, 123, 147, 0.22);
 }
 
 .p-dialog {
-  border-radius: 12px;
+  border-radius: 20px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  background: #0b171a;
+  color: #edf7f8;
+  border: 1px solid rgba(218, 123, 147, 0.22);
 }
 
 .p-dialog-header {
-  border-radius: 12px 12px 0 0;
+  border-radius: 20px 20px 0 0;
+  background: #0b171a;
+  color: #edf7f8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.p-dialog-content {
+  background: #0b171a;
+  color: #edf7f8;
+}
+
+.p-dialog .p-dialog-header-icon {
+  color: #d8e7e8;
 }
 
 /* Глобальные стили для инпутов */
 .p-inputtext {
-  color: #1f2937 !important;
-  background-color: rgba(255, 255, 255, 0.5) !important;
+  color: #edf7f8 !important;
+  background-color: rgba(16, 31, 35, 0.9) !important;
   backdrop-filter: blur(8px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .p-inputtext:focus {
-  background-color: white !important;
-  color: #111827 !important;
+  background-color: #14282b !important;
+  color: #ffffff !important;
+  border-color: #da7b93 !important;
+  box-shadow: 0 0 0 3px rgba(218, 123, 147, 0.15) !important;
 }
 
 .p-inputtext::placeholder {
-  color: #9ca3af !important;
+  color: #8ca5a7 !important;
+}
+
+.p-button {
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.p-button:focus {
+  box-shadow: 0 0 0 3px rgba(218, 123, 147, 0.16) !important;
+}
+
+.p-radiobutton .p-radiobutton-box {
+  background: rgba(16, 31, 35, 0.9);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Анимации появления */
@@ -164,41 +210,6 @@ textarea:focus-visible {
 @media (min-width: 1024px) {
   html {
     font-size: 16px;
-  }
-}
-
-/* Темная тема (опционально) */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #111827;
-    color: #f9fafb;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #374151;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #6b7280;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-  }
-
-  /* Инпуты в темной теме */
-  .p-inputtext {
-    color: #f9fafb !important;
-    background-color: rgba(31, 41, 55, 0.5) !important;
-  }
-
-  .p-inputtext:focus {
-    background-color: #374151 !important;
-    color: #f9fafb !important;
-  }
-
-  .p-inputtext::placeholder {
-    color: #6b7280 !important;
   }
 }
 

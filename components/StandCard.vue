@@ -1,203 +1,229 @@
 <template>
-  <div class="stand-card" :class="cardClasses">
-    <div class="flex items-center justify-between p-6">
-      <!-- Информация о стенде -->
-      <div class="flex-1">
-        <h3 class="text-xl font-bold text-neutral-800 mb-3">
-          {{ stand.name }}
-        </h3>
-        <div class="flex items-center gap-3 mb-3">
+  <article class="stand-card" :class="cardClasses">
+    <div class="mb-4 flex items-start justify-between gap-4">
+      <div class="min-w-0">
+        <div class="mb-2 flex flex-wrap items-center gap-2">
+          <h3 class="truncate text-xl font-black tracking-normal text-white">
+            {{ stand.name }}
+          </h3>
+          <span class="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-bold text-slate-400">
+            {{ stand.type }}
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
           <span class="status-badge" :class="statusClasses">
-            <i :class="statusIcon" class="mr-2"></i>
+            <i :class="statusIcon"></i>
             {{ statusText }}
           </span>
-          <!-- Время занятия -->
           <span
             v-if="stand.occupiedAt && stand.status === 'occupied'"
-            class="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full"
+            class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-slate-400"
           >
             {{ formatOccupiedTime }}
           </span>
         </div>
-        <!-- Пользователь, занявший стенд -->
-        <div v-if="stand.occupiedBy" class="mt-3">
-          <span class="text-sm text-neutral-600 flex items-center gap-2">
-            <i class="pi pi-user text-primary-500"></i>
-            Занят:
-            <strong class="text-neutral-800">{{ stand.occupiedBy }}</strong>
-          </span>
-        </div>
-        <!-- Ссылка на задачу -->
-        <div class="mt-4">
-          <Button
-            v-if="!stand.task_url"
-            label="Указать ссылку на задачу"
-            icon="pi pi-link"
-            class="p-button-sm p-button-outlined text-primary-600 border-primary-300 hover:bg-primary-50"
-            @click="openTaskModal"
-          />
-          <div v-else class="flex items-center gap-2 mt-2">
-            <a
-              :href="stand.task_url"
-              target="_blank"
-              class="text-primary-600 underline break-all"
-              >{{ taskUrl }}</a
-            >
-            <Button
-              icon="pi pi-pencil"
-              class="p-button-text p-0"
-              @click="openTaskModal"
-            />
-            <Button
-              icon="pi pi-times"
-              class="p-button-text p-0 text-red-500"
-              @click="unsetTaskUrl"
-            />
-          </div>
-        </div>
-        <!-- Время окончания -->
-        <div class="mt-4" v-if="stand.occupiedBy">
-          <Button
-            v-if="!stand.ended_at"
-            label="Установить время освобождения"
-            icon="pi pi-clock"
-            class="p-button-sm p-button-outlined text-orange-600 border-orange-300 hover:bg-orange-50"
-            @click="openEndedAtModal"
-          />
-          <div v-else class="flex items-center gap-2 mt-2">
-            <span
-              class="text-orange-600 text-sm bg-orange-50 px-3 py-1 rounded-full"
-            >
-              <i class="pi pi-clock mr-1"></i>
-              Окончание: {{ formatEndedAt }}
-            </span>
-            <Button
-              icon="pi pi-pencil"
-              class="p-button-text p-0"
-              @click="openEndedAtModal"
-            />
-            <Button
-              icon="pi pi-times"
-              class="p-button-text p-0 text-red-500"
-              @click="unsetEndedAt"
-            />
-          </div>
-        </div>
-        <!-- Комментарий -->
-        <div class="mt-4">
-          <div v-if="hasComment" class="comment-block">
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <p class="comment-label">Комментарий</p>
-                <p class="comment-text">{{ localComment }}</p>
-              </div>
-              <div v-if="canEditComment" class="flex items-center gap-2">
-                <Button
-                  icon="pi pi-pencil"
-                  class="p-button-text p-0"
-                  @click="openCommentModal"
-                />
-                <Button
-                  icon="pi pi-times"
-                  class="p-button-text p-0 text-red-500"
-                  :loading="isCommentSaving"
-                  :disabled="isCommentSaving"
-                  @click="removeComment"
-                />
-              </div>
-            </div>
-          </div>
-          <Button
-            v-else-if="canEditComment"
-            label="Добавить комментарий"
-            icon="pi pi-comment"
-            class="p-button-sm p-button-outlined text-neutral-600 border-neutral-300 hover:bg-neutral-50"
-            @click="openCommentModal"
-          />
-        </div>
       </div>
-      <!-- Кнопки действий -->
-      <div class="flex flex-col gap-3 ml-6">
+
+      <div class="flex shrink-0 flex-col gap-2">
         <Button
           v-if="canOccupy"
-          @click="handleOccupy"
-          :loading="isLoading"
           icon="pi pi-lock"
           label="Занять"
-          class="p-button-success p-button-sm"
+          class="border-0 bg-brand-pink text-brand-wine shadow-lg shadow-brand-pink/20 hover:bg-pink-300"
+          :loading="isLoading"
+          @click="handleOccupy"
         />
         <Button
           v-if="canRelease"
-          @click="handleRelease"
-          :loading="isLoading"
           icon="pi pi-unlock"
           label="Освободить"
-          class="p-button-danger p-button-sm"
+          class="border-brand-pink/35 bg-brand-pink/15 text-pink-50 hover:bg-brand-pink/25"
+          :loading="isLoading"
+          @click="handleRelease"
         />
-        <!-- Информационная кнопка для стендов, занятых другими -->
         <Button
           v-if="isOccupiedByOther"
           disabled
           icon="pi pi-lock"
           label="Занят"
-          class="p-button-secondary p-button-sm"
+          class="border-white/10 bg-white/[0.04] text-slate-400"
         />
       </div>
     </div>
-    <!-- Модалка для ввода/редактирования ссылки на задачу -->
+
+    <div v-if="stand.occupiedBy" class="mb-4 grid gap-2 rounded-2xl border border-white/10 bg-black/10 p-3 text-sm">
+      <div class="meta-row">
+        <span>Кто</span>
+        <strong>{{ stand.occupiedBy }}</strong>
+      </div>
+      <div v-if="stand.ended_at" class="meta-row">
+        <span>До</span>
+        <strong>{{ formatEndedAt }}</strong>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <div v-if="stand.task_url || isOccupied" class="detail-block">
+        <div class="detail-header">
+          <span><i class="pi pi-link"></i> Задача</span>
+          <div class="flex items-center gap-1">
+            <Button
+              v-if="stand.task_url"
+              icon="pi pi-pencil"
+              text
+              rounded
+              class="detail-icon"
+              @click="openTaskModal"
+            />
+            <Button
+              v-if="stand.task_url"
+              icon="pi pi-times"
+              text
+              rounded
+              class="detail-icon text-brand-pink"
+              @click="unsetTaskUrl"
+            />
+          </div>
+        </div>
+        <a
+          v-if="stand.task_url"
+          :href="stand.task_url"
+          target="_blank"
+          class="mt-2 block break-all text-sm font-bold text-pink-100 underline decoration-brand-pink/50 underline-offset-4"
+        >
+          {{ taskUrl }}
+        </a>
+        <Button
+          v-else
+          icon="pi pi-plus"
+          label="Указать ссылку"
+          class="mt-2 border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"
+          @click="openTaskModal"
+        />
+      </div>
+
+      <div v-if="isOccupied" class="detail-block">
+        <div class="detail-header">
+          <span><i class="pi pi-clock"></i> Время освобождения</span>
+          <div class="flex items-center gap-1">
+            <Button
+              v-if="stand.ended_at"
+              icon="pi pi-pencil"
+              text
+              rounded
+              class="detail-icon"
+              @click="openEndedAtModal"
+            />
+            <Button
+              v-if="stand.ended_at"
+              icon="pi pi-times"
+              text
+              rounded
+              class="detail-icon text-brand-pink"
+              @click="unsetEndedAt"
+            />
+          </div>
+        </div>
+        <p v-if="stand.ended_at" class="mt-2 text-sm font-bold text-slate-100">
+          {{ formatEndedAt }}
+        </p>
+        <Button
+          v-else
+          icon="pi pi-plus"
+          label="Установить время"
+          class="mt-2 border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"
+          @click="openEndedAtModal"
+        />
+      </div>
+
+      <div v-if="hasComment || canEditComment" class="detail-block">
+        <div class="detail-header">
+          <span><i class="pi pi-comment"></i> Комментарий</span>
+          <div v-if="canEditComment" class="flex items-center gap-1">
+            <Button
+              v-if="hasComment"
+              icon="pi pi-pencil"
+              text
+              rounded
+              class="detail-icon"
+              @click="openCommentModal"
+            />
+            <Button
+              v-if="hasComment"
+              icon="pi pi-times"
+              text
+              rounded
+              class="detail-icon text-brand-pink"
+              :loading="isCommentSaving"
+              :disabled="isCommentSaving"
+              @click="removeComment"
+            />
+          </div>
+        </div>
+        <p v-if="hasComment" class="mt-2 whitespace-pre-line text-sm text-slate-200">
+          {{ localComment }}
+        </p>
+        <Button
+          v-else-if="canEditComment"
+          icon="pi pi-plus"
+          label="Добавить комментарий"
+          class="mt-2 border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"
+          @click="openCommentModal"
+        />
+      </div>
+    </div>
+
     <Dialog
       v-model:visible="showTaskModal"
       header="Ссылка на задачу"
       :modal="true"
       :closable="true"
-      :style="{ width: '400px' }"
+      :style="{ width: 'min(440px, calc(100vw - 32px))' }"
     >
-      <form @submit.prevent="submitTaskUrl">
-        <div class="mb-4">
-          <label
-            for="taskUrlInput"
-            class="block mb-2 text-sm font-medium text-neutral-700"
-            >Ссылка на задачу</label
-          >
+      <form class="space-y-4" @submit.prevent="submitTaskUrl">
+        <div>
+          <label for="taskUrlInput" class="mb-2 block text-sm font-bold text-slate-200">
+            Ссылка на задачу
+          </label>
           <InputText
             id="taskUrlInput"
             v-model="taskUrlInput"
-            :class="['w-full', urlError ? 'border-red-500' : '']"
+            class="w-full rounded-2xl"
+            :class="{ 'border-brand-pink': urlError }"
             placeholder="https://..."
             required
             autofocus
           />
-          <div v-if="urlError" class="text-red-500 text-xs mt-1">
+          <p v-if="urlError" class="mt-2 text-xs font-bold text-brand-pink">
             Введите корректную ссылку
-          </div>
+          </p>
         </div>
         <Button
           type="submit"
           label="Сохранить"
-          class="w-full"
+          class="w-full border-0 bg-brand-pink text-brand-wine"
           :disabled="isLoading"
         />
       </form>
     </Dialog>
-    <!-- Модалка для установки времени окончания -->
+
     <Dialog
       v-model:visible="showEndedAtModal"
       header="Время окончания занятия"
       :modal="true"
       :closable="true"
-      :style="{ width: '400px' }"
+      :style="{ width: 'min(440px, calc(100vw - 32px))' }"
     >
-      <form @submit.prevent="submitEndedAt">
-        <div class="mb-4">
-          <label
-            for="endedAtInput"
-            class="block mb-2 text-sm font-medium text-neutral-700"
-            >Дата и время окончания</label
-          >
-          <Calendar
+      <form class="space-y-4" @submit.prevent="submitEndedAt">
+        <div>
+          <label for="endedAtInput" class="mb-2 block text-sm font-bold text-slate-200">
+            Дата и время окончания
+          </label>
+          <DatePicker
             id="endedAtInput"
             v-model="endedAtInput"
-            :class="['w-full', endedAtError ? 'border-red-500' : '']"
+            class="w-full"
             showTime
             hourFormat="24"
             dateFormat="dd/mm/yy"
@@ -206,47 +232,45 @@
             required
             autofocus
           />
-          <div v-if="endedAtError" class="text-red-500 text-xs mt-1">
+          <p v-if="endedAtError" class="mt-2 text-xs font-bold text-brand-pink">
             {{ endedAtError }}
-          </div>
+          </p>
         </div>
         <Button
           type="submit"
           label="Сохранить"
-          class="w-full"
+          class="w-full border-0 bg-brand-pink text-brand-wine"
           :disabled="isLoading"
         />
       </form>
     </Dialog>
-    <!-- Модалка для комментария -->
+
     <Dialog
       v-model:visible="showCommentModal"
       header="Комментарий к стенду"
       :modal="true"
       :closable="true"
-      :style="{ width: '480px' }"
+      :style="{ width: 'min(520px, calc(100vw - 32px))' }"
     >
-      <form @submit.prevent="submitComment">
-        <div class="mb-4">
-          <label
-            for="commentInput"
-            class="block mb-2 text-sm font-medium text-neutral-700"
-            >Комментарий</label
-          >
+      <form class="space-y-4" @submit.prevent="submitComment">
+        <div>
+          <label for="commentInput" class="mb-2 block text-sm font-bold text-slate-200">
+            Комментарий
+          </label>
           <Textarea
             id="commentInput"
             v-model="commentInput"
             rows="5"
             autoResize
-            class="w-full"
+            class="w-full rounded-2xl border-white/10 bg-surface-850/90 text-slate-100"
             placeholder="Опишите прогресс, блокеры или ссылку на PR"
           />
         </div>
-        <div class="flex gap-3">
+        <div class="grid gap-3 sm:grid-cols-2">
           <Button
             type="submit"
             label="Сохранить"
-            class="flex-1"
+            class="border-0 bg-brand-pink text-brand-wine"
             :disabled="isCommentSaving"
             :loading="isCommentSaving"
           />
@@ -254,14 +278,14 @@
             v-if="hasComment"
             type="button"
             label="Удалить"
-            class="p-button-outlined text-red-500 border-red-300 flex-1"
+            class="border-brand-pink/35 bg-brand-pink/15 text-pink-50"
             :disabled="isCommentSaving"
             @click="removeComment"
           />
         </div>
       </form>
     </Dialog>
-  </div>
+  </article>
 </template>
 
 <script setup>
@@ -269,13 +293,12 @@ import { useToast } from "primevue/usetoast";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
-import Calendar from "primevue/calendar";
+import DatePicker from "primevue/datepicker";
 import Textarea from "primevue/textarea";
 import { ref, computed, watch } from "vue";
 import { useUser } from "~/composables/useUser";
 import { useApi } from "~/composables/useApi";
 
-// Props
 const props = defineProps({
   stand: {
     type: Object,
@@ -286,7 +309,7 @@ const props = defineProps({
     default: false,
   },
 });
-// Emits
+
 const emit = defineEmits([
   "occupy",
   "release",
@@ -294,12 +317,13 @@ const emit = defineEmits([
   "task-url-removed",
   "ended-at-updated",
   "ended-at-removed",
+  "comment-change",
 ]);
-// Композаблы
+
 const { user } = useUser();
 const toast = useToast();
 const { updateStand } = useApi();
-// Локальное состояние
+
 const isLoading = ref(false);
 const showTaskModal = ref(false);
 const taskUrlInput = ref("");
@@ -311,6 +335,7 @@ const showCommentModal = ref(false);
 const commentInput = ref("");
 const isCommentSaving = ref(false);
 const localComment = ref(props.stand.comment || "");
+
 const taskUrl = computed(() => {
   if (!props.stand?.task_url) return "";
   const taskUrlHasParams = props.stand.task_url.includes("?");
@@ -327,13 +352,12 @@ watch(
   }
 );
 
-// Открыть модалку для добавления/редактирования ссылки
 function openTaskModal() {
   taskUrlInput.value = props.stand.task_url || "";
   urlError.value = false;
   showTaskModal.value = true;
 }
-// Открыть модалку для установки времени окончания
+
 function openEndedAtModal() {
   endedAtInput.value = props.stand.ended_at
     ? new Date(props.stand.ended_at)
@@ -341,7 +365,7 @@ function openEndedAtModal() {
   endedAtError.value = "";
   showEndedAtModal.value = true;
 }
-// Проверка валидности URL
+
 function isValidUrl(url) {
   try {
     const u = new URL(url);
@@ -350,7 +374,7 @@ function isValidUrl(url) {
     return false;
   }
 }
-// Форматированное время окончания
+
 const formatEndedAt = computed(() => {
   if (!props.stand.ended_at) return "";
   const date = new Date(props.stand.ended_at);
@@ -362,7 +386,7 @@ const formatEndedAt = computed(() => {
     minute: "2-digit",
   });
 });
-// Отправить ссылку на задачу
+
 async function submitTaskUrl() {
   urlError.value = false;
   if (!isValidUrl(taskUrlInput.value)) {
@@ -381,7 +405,6 @@ async function submitTaskUrl() {
       life: 3000,
     });
     showTaskModal.value = false;
-    // Сообщаем родителю об изменении ссылки
     emit("task-url-updated", {
       standId: props.stand.id,
       task_url: taskUrlInput.value,
@@ -397,7 +420,7 @@ async function submitTaskUrl() {
     isLoading.value = false;
   }
 }
-// Отправить время окончания
+
 async function submitEndedAt() {
   endedAtError.value = "";
   if (!endedAtInput.value) {
@@ -410,7 +433,6 @@ async function submitEndedAt() {
   }
   isLoading.value = true;
   try {
-    console.log("endedAtInput.value", endedAtInput.value.toISOString());
     await updateStand(props.stand.id, "set_ended_at", null, {
       ended_at: endedAtInput.value.toISOString(),
     });
@@ -421,7 +443,6 @@ async function submitEndedAt() {
       life: 3000,
     });
     showEndedAtModal.value = false;
-    // Сообщаем родителю об изменении времени окончания
     emit("ended-at-updated", {
       standId: props.stand.id,
       ended_at: endedAtInput.value.toISOString(),
@@ -437,7 +458,7 @@ async function submitEndedAt() {
     isLoading.value = false;
   }
 }
-// Удалить ссылку на задачу
+
 async function unsetTaskUrl() {
   isLoading.value = true;
   try {
@@ -448,7 +469,6 @@ async function unsetTaskUrl() {
       detail: "Ссылка на задачу отвязана",
       life: 3000,
     });
-    // Сообщаем родителю об удалении ссылки
     emit("task-url-removed", props.stand.id);
   } catch (error) {
     toast.add({
@@ -461,7 +481,7 @@ async function unsetTaskUrl() {
     isLoading.value = false;
   }
 }
-// Удалить время окончания
+
 async function unsetEndedAt() {
   isLoading.value = true;
   try {
@@ -472,7 +492,6 @@ async function unsetEndedAt() {
       detail: "Время окончания удалено",
       life: 3000,
     });
-    // Сообщаем родителю об удалении времени окончания
     emit("ended-at-removed", props.stand.id);
   } catch (error) {
     toast.add({
@@ -486,9 +505,6 @@ async function unsetEndedAt() {
   }
 }
 
-/**
- * Вычисляемые свойства для состояния стенда
- */
 const isFree = computed(() => props.stand.status === "free");
 const isOccupied = computed(() => props.stand.status === "occupied");
 const isOccupiedByCurrentUser = computed(
@@ -501,9 +517,6 @@ const isOccupiedByOther = computed(
     props.stand.occupiedBy !== user.value.email
 );
 
-/**
- * Вычисляемые свойства для действий
- */
 const canOccupy = computed(() => isFree.value && !!user.value.email);
 const canRelease = computed(() => isOccupiedByCurrentUser.value);
 const canEditComment = computed(
@@ -511,47 +524,29 @@ const canEditComment = computed(
 );
 const hasComment = computed(() => !!localComment.value);
 
-/**
- * Стили карточки в зависимости от статуса
- */
 const cardClasses = computed(() => ({
-  "border-stand-free-200 bg-gradient-to-br from-stand-free-50 to-stand-free-100":
-    isFree.value,
-  "border-stand-occupied-200 bg-gradient-to-br from-stand-occupied-50 to-stand-occupied-100":
-    isOccupied.value,
-  "ring-2 ring-primary-300 shadow-medium": isOccupiedByCurrentUser.value,
+  "stand-card-free": isFree.value,
+  "stand-card-occupied": isOccupied.value && !isOccupiedByCurrentUser.value,
+  "stand-card-mine": isOccupiedByCurrentUser.value,
 }));
 
-/**
- * Стили статуса
- */
 const statusClasses = computed(() => ({
-  "bg-gradient-to-r from-stand-free-500 to-stand-free-600 text-white shadow-soft":
-    isFree.value,
-  "bg-gradient-to-r from-stand-occupied-500 to-stand-occupied-600 text-white shadow-soft":
-    isOccupied.value,
+  "status-free": isFree.value,
+  "status-occupied": isOccupied.value && !isOccupiedByCurrentUser.value,
+  "status-mine": isOccupiedByCurrentUser.value,
 }));
 
-/**
- * Иконка статуса
- */
 const statusIcon = computed(() => ({
   "pi pi-unlock": isFree.value,
   "pi pi-lock": isOccupied.value,
 }));
 
-/**
- * Текст статуса
- */
 const statusText = computed(() => {
   if (isFree.value) return "Свободен";
-  if (isOccupiedByCurrentUser.value) return "Занят вами";
+  if (isOccupiedByCurrentUser.value) return "Ваш стенд";
   return "Занят";
 });
 
-/**
- * Форматированное время занятия стенда
- */
 const formatOccupiedTime = computed(() => {
   if (!props.stand.occupiedAt) return "";
 
@@ -573,9 +568,6 @@ const formatOccupiedTime = computed(() => {
   });
 });
 
-/**
- * Обрабатывает занятие стенда
- */
 const handleOccupy = async () => {
   if (!user.value.email) {
     toast.add({
@@ -602,9 +594,6 @@ const handleOccupy = async () => {
   }
 };
 
-/**
- * Обрабатывает освобождение стенда
- */
 const handleRelease = async () => {
   try {
     isLoading.value = true;
@@ -621,17 +610,11 @@ const handleRelease = async () => {
   }
 };
 
-/**
- * Открывает модалку редактирования комментария
- */
 function openCommentModal() {
   commentInput.value = localComment.value;
   showCommentModal.value = true;
 }
 
-/**
- * Сохраняет комментарий к стенду
- */
 async function submitComment() {
   isCommentSaving.value = true;
   try {
@@ -651,9 +634,6 @@ async function submitComment() {
   }
 }
 
-/**
- * Удаляет комментарий стенда
- */
 async function removeComment() {
   isCommentSaving.value = true;
   try {
@@ -680,74 +660,91 @@ async function removeComment() {
 
 <style scoped>
 .stand-card {
-  @apply border-2 
-    rounded-2xl 
-    bg-white 
-    shadow-soft 
-    hover:shadow-medium
-    transition-all duration-300 ease-out;
+  @apply rounded-[1.35rem] border p-4 shadow-xl shadow-black/20 transition duration-200;
+  height: fit-content;
+  break-inside: avoid;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 14px;
 }
 
 .stand-card:hover {
   transform: translateY(-2px);
 }
 
+.stand-card-free {
+  @apply border-brand-teal/35 bg-gradient-to-br from-surface-850/95 to-brand-forest/70;
+}
+
+.stand-card-occupied {
+  @apply border-brand-pink/35 bg-gradient-to-br from-brand-wine/70 to-surface-850/95;
+}
+
+.stand-card-mine {
+  @apply border-brand-pink/60 bg-gradient-to-br from-brand-forest/80 to-brand-wine/50 ring-2 ring-brand-pink/25;
+}
+
 .status-badge {
-  @apply px-4 
-    py-2 
-    rounded-full 
-    text-sm 
-    font-semibold 
-    flex 
-    items-center
-    transition-all duration-300;
+  @apply inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black;
 }
 
-.comment-block {
-  @apply bg-neutral-100/80 border border-neutral-200 rounded-2xl p-4 shadow-inner;
+.status-free {
+  @apply border-brand-teal/40 bg-brand-teal/20 text-teal-100;
 }
 
-.comment-label {
-  @apply text-xs font-semibold uppercase text-neutral-500 tracking-wide mb-2;
+.status-occupied {
+  @apply border-brand-pink/40 bg-brand-pink/15 text-pink-100;
 }
 
-.comment-text {
-  @apply text-sm text-neutral-700 whitespace-pre-line;
+.status-mine {
+  @apply border-brand-pink/50 bg-brand-pink text-brand-wine;
 }
 
-/* Кастомные стили для кнопок */
-:deep(.p-button-sm) {
-  @apply px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300;
+.meta-row {
+  @apply flex items-center justify-between gap-3;
 }
 
-:deep(.p-button-success) {
-  @apply bg-gradient-to-r from-stand-free-500 to-stand-free-600 border-stand-free-500 text-white shadow-soft;
+.meta-row span {
+  @apply text-slate-500;
 }
 
-:deep(.p-button-success:hover) {
-  @apply from-stand-free-600 to-stand-free-700 border-stand-free-600 shadow-medium transform scale-105;
+.meta-row strong {
+  @apply min-w-0 truncate text-right text-slate-100;
 }
 
-:deep(.p-button-danger) {
-  @apply bg-gradient-to-r from-stand-occupied-500 to-stand-occupied-600 border-stand-occupied-500 text-white shadow-soft;
+.detail-block {
+  @apply rounded-2xl border border-white/10 bg-white/[0.035] p-3;
 }
 
-:deep(.p-button-danger:hover) {
-  @apply from-stand-occupied-600 to-stand-occupied-700 border-stand-occupied-600 shadow-medium transform scale-105;
+.detail-header {
+  @apply flex items-center justify-between gap-3 text-xs font-black uppercase tracking-[0.12em] text-slate-500;
 }
 
-:deep(.p-button-secondary) {
-  @apply bg-gradient-to-r from-neutral-400 to-neutral-500 border-neutral-400 text-white shadow-soft;
+.detail-header span {
+  @apply flex items-center gap-2;
 }
 
-/* Специальное выделение для стендов текущего пользователя */
-.stand-card.ring-2 {
-  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.15),
-    0 4px 10px -2px rgba(59, 130, 246, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.2);
+.detail-icon {
+  @apply h-8 w-8 text-slate-300 hover:bg-white/[0.08];
 }
 
-/* Анимация при наведении */
-.stand-card:hover .status-badge {
-  transform: scale(1.05);
+:deep(.p-datepicker) {
+  background: #0b171a;
+  color: #edf7f8;
+  border: 1px solid rgba(218, 123, 147, 0.22);
+}
+
+:deep(.p-datepicker-header) {
+  background: #0b171a;
+  color: #edf7f8;
+}
+
+:deep(.p-datepicker table td > span) {
+  color: #edf7f8;
+}
+
+:deep(.p-datepicker table td.p-datepicker-today > span) {
+  background: rgba(218, 123, 147, 0.18);
+  color: #ffd7df;
 }
 </style>

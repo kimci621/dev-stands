@@ -1,282 +1,162 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100">
-    <!-- Заголовок приложения -->
+  <div class="min-h-screen bg-surface-950 text-slate-100">
     <header
-      class="bg-white/80 backdrop-blur-sm shadow-soft border-b border-neutral-200/50 sticky top-0 z-50"
+      class="sticky top-0 z-50 border-b border-white/10 bg-surface-950/80 backdrop-blur-2xl"
     >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <!-- Логотип и название -->
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-medium"
-            >
-              <i class="pi pi-server text-xl text-white"></i>
-            </div>
-            <h1
-              class="text-2xl font-bold bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent"
-            >
+      <div class="mx-auto flex max-w-[1500px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div class="flex min-w-0 items-center gap-4">
+          <div
+            class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-pink to-brand-teal text-lg font-black text-brand-wine shadow-[0_18px_46px_rgba(218,123,147,0.24)]"
+          >
+            S
+          </div>
+          <div class="min-w-0">
+            <h1 class="truncate text-xl font-black tracking-normal text-white sm:text-2xl">
               Управление стендами
             </h1>
+            <p class="hidden text-sm text-slate-400 sm:block">
+              Быстро видно, что свободно, что занято и когда освободится
+            </p>
           </div>
+        </div>
 
-          <!-- Профиль пользователя -->
+        <div class="flex items-center gap-3">
+          <span
+            class="hidden items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold sm:inline-flex"
+            :class="
+              isConnected
+                ? 'border-brand-teal/40 bg-brand-teal/15 text-teal-100'
+                : 'border-brand-pink/40 bg-brand-wine/60 text-pink-100'
+            "
+          >
+            <span
+              class="h-2 w-2 rounded-full"
+              :class="isConnected ? 'bg-teal-300' : 'bg-brand-pink'"
+            ></span>
+            {{ isConnected ? "Подключено" : "Отключено" }}
+          </span>
           <UserProfile />
         </div>
       </div>
     </header>
 
-    <!-- Основной контент -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Статус подключения -->
-      <div v-if="!isConnected" class="mb-8 animate-fade-in">
-        <div
-          class="bg-stand-occupied-50 border border-stand-occupied-200 rounded-2xl p-6 shadow-soft"
-        >
-          <div class="flex items-center gap-3">
+    <main class="mx-auto grid max-w-[1500px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-8">
+      <aside class="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <section class="rounded-[1.4rem] border border-white/10 bg-surface-900/75 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
+          <p class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+            Обзор
+          </p>
+          <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
             <div
-              class="w-10 h-10 bg-stand-occupied-100 rounded-full flex items-center justify-center"
+              v-for="metric in metrics"
+              :key="metric.label"
+              class="rounded-2xl border p-4"
+              :class="metric.class"
             >
+              <div class="text-3xl font-black leading-none">{{ metric.value }}</div>
+              <div class="mt-2 text-sm font-semibold opacity-80">{{ metric.label }}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-[1.4rem] border border-white/10 bg-surface-900/75 p-4 backdrop-blur-xl">
+          <p class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+            Блоки
+          </p>
+          <div class="space-y-2">
+            <button
+              v-for="group in groupControls"
+              :key="group.key"
+              class="flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-bold transition"
+              :class="
+                isGroupVisible(group.key)
+                  ? 'border-brand-pink/35 bg-brand-pink/15 text-pink-50'
+                  : 'border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]'
+              "
+              @click="toggleGroup(group.key)"
+            >
+              <span>{{ group.label }}</span>
               <i
-                class="pi pi-exclamation-triangle text-stand-occupied-600 text-lg"
+                class="pi"
+                :class="isGroupVisible(group.key) ? 'pi-eye' : 'pi-eye-slash'"
               ></i>
-            </div>
+            </button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="min-w-0 space-y-5">
+        <div
+          v-if="!isConnected && !isLoading"
+          class="rounded-2xl border border-brand-pink/35 bg-brand-wine/60 p-4 text-pink-50"
+        >
+          <div class="flex items-start gap-3">
+            <i class="pi pi-exclamation-triangle mt-0.5 text-brand-pink"></i>
             <div>
-              <span class="text-stand-occupied-800 font-semibold text-lg">
-                Нет подключения к серверу
-              </span>
-              <p class="text-stand-occupied-600 text-sm mt-1">
-                Проверьте, что сервер запущен
-              </p>
+              <p class="font-black">Нет подключения к серверу</p>
+              <p class="mt-1 text-sm text-pink-100/75">Проверьте, что сервер запущен.</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Таймер автосброса -->
-      <div class="mb-8 animate-slide-up hidden">
-        <AutoReleaseTimer
-          :last-reset="lastReset"
-          :show-reset-button="false"
-          @manual-reset="() => {}"
-        />
-      </div>
-
-      <!-- Общая статистика -->
-      <div class="mb-10 animate-slide-up hidden">
-        <div
-          class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft border border-white/50 p-8"
-        >
-          <h2
-            class="text-2xl font-bold text-neutral-800 mb-6 flex items-center gap-3"
-          >
-            <div
-              class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center"
-            >
-              <i class="pi pi-chart-bar text-white text-sm"></i>
-            </div>
-            Общая статистика
-          </h2>
-
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div
-              class="stat-card bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200"
-            >
-              <div class="stat-value text-primary-700">
-                {{ statistics.total }}
-              </div>
-              <div class="stat-label text-primary-600">Всего стендов</div>
-            </div>
-
-            <div
-              class="stat-card bg-gradient-to-br from-stand-free-50 to-stand-free-100 border border-stand-free-200"
-            >
-              <div class="stat-value text-stand-free-700">
-                {{ statistics.free }}
-              </div>
-              <div class="stat-label text-stand-free-600">Свободно</div>
-            </div>
-
-            <div
-              class="stat-card bg-gradient-to-br from-stand-occupied-50 to-stand-occupied-100 border border-stand-occupied-200"
-            >
-              <div class="stat-value text-stand-occupied-700">
-                {{ statistics.occupied }}
-              </div>
-              <div class="stat-label text-stand-occupied-600">Занято</div>
-            </div>
-
-            <div
-              class="stat-card bg-gradient-to-br from-neutral-50 to-neutral-100 border border-neutral-200"
-            >
-              <div class="stat-value text-neutral-700">
-                {{ statistics.occupancyRate }}%
-              </div>
-              <div class="stat-label text-neutral-600">Загрузка</div>
-            </div>
-          </div>
-
-          <!-- Стенды пользователя -->
+        <div v-if="isLoading" class="grid gap-4 md:grid-cols-2">
           <div
-            v-if="userStands.length > 0"
-            class="mt-8 pt-8 border-t border-neutral-200/50"
-          >
-            <h3
-              class="text-xl font-semibold text-neutral-800 mb-4 flex items-center gap-2"
-            >
-              <i class="pi pi-user text-primary-600"></i>
-              Ваши стенды ({{ userStands.length }})
-            </h3>
-            <div class="flex flex-wrap gap-3">
-              <span
-                v-for="stand in userStands"
-                :key="stand.id"
-                class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full text-sm font-medium shadow-soft"
-              >
-                {{ stand.name }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Загрузка -->
-      <div v-if="isLoading" class="flex justify-center py-16 animate-fade-in">
-        <div
-          class="flex items-center gap-4 bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-soft"
-        >
-          <div
-            class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"
+            v-for="index in 4"
+            :key="index"
+            class="h-48 animate-pulse rounded-[1.4rem] border border-white/10 bg-surface-900/70"
           ></div>
-          <span class="text-lg text-neutral-700 font-medium"
-            >Загрузка стендов...</span
-          >
         </div>
-      </div>
 
-      <!-- Ошибка -->
-      <div v-else-if="error" class="mb-8 animate-fade-in">
-        <div
-          class="bg-stand-occupied-50 border border-stand-occupied-200 rounded-2xl p-6 shadow-soft"
-        >
-          <div class="flex items-center gap-3 mb-4">
-            <div
-              class="w-10 h-10 bg-stand-occupied-100 rounded-full flex items-center justify-center"
-            >
-              <i class="pi pi-times-circle text-stand-occupied-600 text-lg"></i>
+        <div v-else-if="error" class="rounded-2xl border border-brand-pink/35 bg-brand-wine/60 p-5">
+          <div class="mb-4 flex items-start gap-3">
+            <i class="pi pi-times-circle mt-1 text-brand-pink"></i>
+            <div>
+              <p class="text-lg font-black text-white">Ошибка загрузки</p>
+              <p class="mt-1 text-sm text-pink-100/80">{{ error }}</p>
             </div>
-            <span class="text-stand-occupied-800 font-semibold text-lg"
-              >Ошибка загрузки</span
-            >
           </div>
-          <p class="text-stand-occupied-600 text-sm mb-4">{{ error }}</p>
           <Button
-            @click="initialize"
             icon="pi pi-refresh"
             label="Попробовать снова"
-            class="p-button-sm"
+            class="border-brand-pink/40 bg-brand-pink text-brand-wine"
+            @click="initialize"
           />
         </div>
-      </div>
 
-      <!-- Группы стендов -->
-      <div v-else class="space-y-10">
-        <!-- Frontend Group -->
-        <Transition name="fade" mode="out-in">
-          <div v-if="isGroupVisible('frontend')" class="relative">
-            <button
-              @click="toggleGroup('frontend')"
-              class="absolute top-4 right-4 z-[100] bg-slate-500 hover:bg-slate-600 text-white rounded-2xl px-4 py-2 transition-colors"
-            >
-              Скрыть блок Frontend
-            </button>
-            <StandGroup
-              group-name="frontend"
-              :stands="stands.frontend"
-              :allow-comment-edit="true"
-              @occupy="handleOccupy"
-              @release="handleRelease"
-              @refresh-stands="refreshStands"
-              @comment-change="handleCommentChange"
-            />
-          </div>
-          <div v-else class="relative p-4">
-            <button
-              @click="toggleGroup('frontend')"
-              class="w-full py-2 px-4 bg-slate-500 hover:bg-slate-300 rounded-2xl text-center transition-colors"
-            >
-              Показать блок Frontend
-            </button>
-          </div>
-        </Transition>
+        <template v-else>
+          <StandGroup
+            v-if="isGroupVisible('frontend')"
+            group-name="frontend"
+            :stands="stands.frontend"
+            :allow-comment-edit="true"
+            @occupy="handleOccupy"
+            @release="handleRelease"
+            @refresh-stands="refreshStands"
+            @comment-change="handleCommentChange"
+          />
 
-        <!-- Backend Group -->
-        <Transition name="fade" mode="out-in">
-          <div v-if="isGroupVisible('backend')" class="relative">
-            <button
-              @click="toggleGroup('backend')"
-              class="absolute top-4 right-4 z-[100] bg-slate-500 hover:bg-slate-600 text-white rounded-2xl px-4 py-2 transition-colors"
-            >
-              Скрыть блок Backend
-            </button>
-            <StandGroup
-              group-name="backend"
-              :stands="stands.backend"
-              :allow-comment-edit="true"
-              @occupy="handleOccupy"
-              @release="handleRelease"
-              @refresh-stands="refreshStands"
-              @comment-change="handleCommentChange"
-            />
+          <StandGroup
+            v-if="isGroupVisible('backend')"
+            group-name="backend"
+            :stands="stands.backend"
+            :allow-comment-edit="true"
+            @occupy="handleOccupy"
+            @release="handleRelease"
+            @refresh-stands="refreshStands"
+            @comment-change="handleCommentChange"
+          />
+
+          <div
+            v-if="!isGroupVisible('frontend') && !isGroupVisible('backend')"
+            class="rounded-[1.4rem] border border-white/10 bg-surface-900/70 p-10 text-center"
+          >
+            <p class="text-lg font-black text-white">Все блоки скрыты</p>
+            <p class="mt-2 text-sm text-slate-400">Включите Frontend или Backend в левой панели.</p>
           </div>
-          <div v-else class="relative p-4">
-            <button
-              @click="toggleGroup('backend')"
-              class="w-full py-2 px-4 bg-slate-500 hover:bg-slate-300 rounded-2xl text-center transition-colors"
-            >
-              Показать блок Backend
-            </button>
-          </div>
-        </Transition>
-      </div>
+        </template>
+      </section>
     </main>
 
-    <!-- Футер -->
-    <footer
-      class="bg-white/80 backdrop-blur-sm border-t border-neutral-200/50 mt-20"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex items-center justify-between">
-          <p class="text-sm text-neutral-600">
-            Система управления стендами разработки
-          </p>
-
-          <div class="flex items-center gap-6">
-            <span
-              class="flex items-center gap-2 text-sm font-medium"
-              :class="
-                isConnected ? 'text-stand-free-600' : 'text-stand-occupied-600'
-              "
-            >
-              <div
-                class="w-2 h-2 rounded-full"
-                :class="
-                  isConnected ? 'bg-stand-free-500' : 'bg-stand-occupied-500'
-                "
-              ></div>
-              {{ isConnected ? "Подключено" : "Отключено" }}
-            </span>
-
-            <span
-              class="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full"
-              >v1.0.0</span
-            >
-          </div>
-        </div>
-      </div>
-    </footer>
-
-    <!-- Toast уведомления -->
     <Toast position="top-right" />
   </div>
 </template>
@@ -286,10 +166,8 @@ import { useToast } from "primevue/usetoast";
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 
-// Композаблы
 const {
   stands,
-  lastReset,
   isLoading,
   error,
   isConnected,
@@ -302,7 +180,7 @@ const {
   fetchStands,
 } = useStands();
 
-const { user, isLoggedIn } = useUser();
+const { isLoggedIn } = useUser();
 const router = useRouter();
 const toast = useToast();
 
@@ -310,6 +188,11 @@ const groupVisibility = ref({
   frontend: true,
   backend: true,
 });
+
+const groupControls = [
+  { key: "frontend", label: "Frontend" },
+  { key: "backend", label: "Backend" },
+];
 
 onMounted(() => {
   const savedState = localStorage.getItem("standGroupVisibility");
@@ -325,7 +208,6 @@ onMounted(() => {
   }
 });
 
-// Watch for changes and save to localStorage
 watch(
   groupVisibility,
   (newValue) => {
@@ -334,12 +216,8 @@ watch(
   { deep: true }
 );
 
-// Check if a group is visible
-const isGroupVisible = (group) => {
-  return groupVisibility.value[group] !== false; // Default to true if not set
-};
+const isGroupVisible = (group) => groupVisibility.value[group] !== false;
 
-// Toggle group visibility
 const toggleGroup = (group) => {
   groupVisibility.value = {
     ...groupVisibility.value,
@@ -347,25 +225,42 @@ const toggleGroup = (group) => {
   };
 };
 
-// Редирект на /login, если не залогинен
 if (!isLoggedIn.value) {
   router.replace("/login");
 }
 
-// Вычисляемые свойства с мемоизацией
 const userStands = computed(() => getUserStands.value);
 const statistics = computed(() => getStatistics.value);
 
-/**
- * Обрабатывает занятие стенда
- * @param {number} standId - ID стенда
- */
+const metrics = computed(() => [
+  {
+    label: "Всего",
+    value: statistics.value.total,
+    class: "border-white/10 bg-white/[0.04] text-slate-100",
+  },
+  {
+    label: "Свободно",
+    value: statistics.value.free,
+    class: "border-brand-teal/35 bg-brand-teal/20 text-teal-100",
+  },
+  {
+    label: "Занято",
+    value: statistics.value.occupied,
+    class: "border-brand-pink/35 bg-brand-wine/55 text-pink-100",
+  },
+  {
+    label: "Мои",
+    value: userStands.value.length,
+    class: "border-brand-pink/35 bg-brand-pink/15 text-pink-50",
+  },
+]);
+
 const handleOccupy = async (standId) => {
   if (!isLoggedIn.value) {
     toast.add({
       severity: "warn",
       summary: "Внимание",
-      detail: "Необходимо указать ваше имя перед занятием стенда",
+      detail: "Необходимо войти в систему перед занятием стенда",
       life: 5000,
     });
     return;
@@ -373,7 +268,6 @@ const handleOccupy = async (standId) => {
 
   try {
     await occupyStand(standId);
-
     toast.add({
       severity: "success",
       summary: "Успех",
@@ -390,14 +284,9 @@ const handleOccupy = async (standId) => {
   }
 };
 
-/**
- * Обрабатывает освобождение стенда
- * @param {number} standId - ID стенда
- */
 const handleRelease = async (standId) => {
   try {
     await releaseStand(standId);
-
     toast.add({
       severity: "info",
       summary: "Освобождено",
@@ -414,11 +303,6 @@ const handleRelease = async (standId) => {
   }
 };
 
-/**
- * Обрабатывает изменение комментария стенда
- * @param {number} standId - ID стенда
- * @param {string|null} comment - текст комментария
- */
 const handleCommentChange = async (standId, comment) => {
   try {
     await setComment(standId, comment);
@@ -443,17 +327,14 @@ async function refreshStands() {
   await fetchStands();
 }
 
-// Инициализация при монтировании компонента
 onMounted(async () => {
   try {
     await initialize();
   } catch (err) {
     console.error("Ошибка инициализации:", err);
   }
-
 });
 
-// Мета-теги для страницы
 useHead({
   title: "Управление стендами разработки",
   meta: [
@@ -465,80 +346,3 @@ useHead({
   ],
 });
 </script>
-
-<style scoped>
-.stat-card {
-  @apply text-center p-6 rounded-2xl transition-all duration-300 hover:shadow-medium hover:scale-105;
-}
-
-.stat-value {
-  @apply text-4xl font-bold mb-2;
-}
-
-.stat-label {
-  @apply text-sm font-medium;
-}
-
-/* Анимации для загрузки */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-  .stat-value {
-    @apply text-3xl;
-  }
-
-  .grid-cols-2 {
-    @apply grid-cols-1;
-  }
-
-  .md\:grid-cols-4 {
-    @apply grid-cols-2;
-  }
-}
-
-/* Улучшенная типографика */
-h1,
-h2,
-h3 {
-  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Плавные переходы */
-* {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Анимации для плавного появления/исчезновения */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* Предотвращение layout shift */
-.stand-group {
-  min-height: 200px;
-}
-
-/* Оптимизация перерисовки */
-.stat-card {
-  will-change: auto;
-  transform: translateZ(0);
-}
-</style>
