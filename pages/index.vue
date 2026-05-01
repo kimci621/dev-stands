@@ -90,6 +90,28 @@
             </button>
           </div>
         </section>
+
+        <section class="rounded-[1.4rem] border border-white/10 bg-surface-900/75 p-4 backdrop-blur-xl">
+          <p class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+            Вид
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              v-for="option in viewOptions"
+              :key="option.value"
+              class="flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-sm font-bold transition"
+              :class="
+                viewMode === option.value
+                  ? 'border-brand-pink/35 bg-brand-pink text-brand-wine'
+                  : 'border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.06] hover:text-white'
+              "
+              @click="setViewMode(option.value)"
+            >
+              <i class="pi" :class="option.icon"></i>
+              {{ option.label }}
+            </button>
+          </div>
+        </section>
       </aside>
 
       <section class="min-w-0 space-y-5">
@@ -132,7 +154,18 @@
 
         <template v-else>
           <StandGroup
-            v-if="isGroupVisible('frontend')"
+            v-if="isGroupVisible('frontend') && viewMode === 'cards'"
+            group-name="frontend"
+            :stands="stands.frontend"
+            :allow-comment-edit="true"
+            @occupy="handleOccupy"
+            @release="handleRelease"
+            @refresh-stands="refreshStands"
+            @comment-change="handleCommentChange"
+          />
+
+          <StandTableGroup
+            v-if="isGroupVisible('frontend') && viewMode === 'table'"
             group-name="frontend"
             :stands="stands.frontend"
             :allow-comment-edit="true"
@@ -143,7 +176,18 @@
           />
 
           <StandGroup
-            v-if="isGroupVisible('backend')"
+            v-if="isGroupVisible('backend') && viewMode === 'cards'"
+            group-name="backend"
+            :stands="stands.backend"
+            :allow-comment-edit="true"
+            @occupy="handleOccupy"
+            @release="handleRelease"
+            @refresh-stands="refreshStands"
+            @comment-change="handleCommentChange"
+          />
+
+          <StandTableGroup
+            v-if="isGroupVisible('backend') && viewMode === 'table'"
             group-name="backend"
             :stands="stands.backend"
             :allow-comment-edit="true"
@@ -200,6 +244,24 @@ const groupControls = [
   { key: "frontend", label: "Frontend" },
   { key: "backend", label: "Backend" },
 ];
+
+const viewOptions = [
+  { value: "cards", label: "Карты", icon: "pi-th-large" },
+  { value: "table", label: "Таблица", icon: "pi-table" },
+];
+
+const viewModeCookie = useCookie("standViewMode", {
+  default: () => "cards",
+  maxAge: 60 * 60 * 24 * 365,
+  sameSite: "lax",
+});
+const viewMode = computed(() =>
+  viewModeCookie.value === "table" ? "table" : "cards"
+);
+
+const setViewMode = (value) => {
+  viewModeCookie.value = value === "table" ? "table" : "cards";
+};
 
 onMounted(() => {
   const savedState = localStorage.getItem("standGroupVisibility");
