@@ -1,6 +1,7 @@
 // Композабл для управления стендами
 export const useStands = () => {
-  const { getStands, resetExpiredStands } = useApi();
+  const { createStand, deleteStand, getStands, resetExpiredStands, updateStandMeta } =
+    useApi();
   const { user } = useUser();
 
   // Реактивное состояние
@@ -231,6 +232,54 @@ export const useStands = () => {
     }
   };
 
+  const createManagedStand = async (standData) => {
+    if (!user.value.email) {
+      throw new Error("Необходимо войти в систему");
+    }
+
+    try {
+      const response = await createStand(standData, user.value);
+      await fetchStands(false);
+      return response;
+    } catch (err) {
+      error.value = err.message;
+      await fetchStands(false);
+      throw err;
+    }
+  };
+
+  const updateManagedStand = async (standId, standData) => {
+    if (!user.value.email) {
+      throw new Error("Необходимо войти в систему");
+    }
+
+    try {
+      const response = await updateStandMeta(standId, standData, user.value);
+      await fetchStands(false);
+      return response;
+    } catch (err) {
+      error.value = err.message;
+      await fetchStands(false);
+      throw err;
+    }
+  };
+
+  const deleteManagedStand = async (standId) => {
+    if (!user.value.email) {
+      throw new Error("Необходимо войти в систему");
+    }
+
+    try {
+      const response = await deleteStand(standId, user.value);
+      await fetchStands(false);
+      return response;
+    } catch (err) {
+      error.value = err.message;
+      await fetchStands(false);
+      throw err;
+    }
+  };
+
   /**
    * Получает все стенды, занятые текущим пользователем
    * @returns {Array} массив занятых стендов
@@ -404,6 +453,9 @@ export const useStands = () => {
     occupyStand,
     releaseStand,
     setComment,
+    createManagedStand,
+    updateManagedStand,
+    deleteManagedStand,
     findStandById,
     initialize,
 

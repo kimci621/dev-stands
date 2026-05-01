@@ -21,6 +21,13 @@
         </div>
 
         <div class="flex items-center gap-3">
+          <NuxtLink
+            to="/manage"
+            class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-slate-200 transition hover:border-brand-pink/35 hover:bg-brand-pink/15 hover:text-white sm:inline-flex"
+          >
+            <i class="pi pi-cog"></i>
+            Редактирование
+          </NuxtLink>
           <span
             class="hidden items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold sm:inline-flex"
             :class="

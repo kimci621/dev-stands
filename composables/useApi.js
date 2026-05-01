@@ -96,6 +96,31 @@ export const useApi = () => {
     return await post("/stands", { standId, action, user, ...extra });
   };
 
+  const createStand = async (standData, user = null) => {
+    return await post("/stands", {
+      action: "create_stand",
+      user,
+      ...standData,
+    });
+  };
+
+  const updateStandMeta = async (standId, standData, user = null) => {
+    return await post("/stands", {
+      standId,
+      action: "update_stand_meta",
+      user,
+      ...standData,
+    });
+  };
+
+  const deleteStand = async (standId, user = null) => {
+    return await post("/stands", {
+      standId,
+      action: "delete_stand",
+      user,
+    });
+  };
+
   /**
    * Выполняет сброс просроченных стендов
    * @returns {Promise<Object>} ответ сервера
@@ -119,6 +144,9 @@ export const useApi = () => {
     register,
     getStands,
     updateStand,
+    createStand,
+    updateStandMeta,
+    deleteStand,
     resetExpiredStands,
     healthCheck,
   };

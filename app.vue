@@ -160,6 +160,38 @@ textarea:focus-visible {
   color: #8ca5a7 !important;
 }
 
+.p-select {
+  color: #edf7f8 !important;
+  background-color: rgba(16, 31, 35, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.p-select:not(.p-disabled).p-focus {
+  border-color: #da7b93 !important;
+  box-shadow: 0 0 0 3px rgba(218, 123, 147, 0.15) !important;
+}
+
+.p-select-label,
+.p-select-dropdown {
+  color: #edf7f8 !important;
+}
+
+.p-select-overlay {
+  background: #0b171a !important;
+  color: #edf7f8 !important;
+  border: 1px solid rgba(218, 123, 147, 0.22) !important;
+}
+
+.p-select-option {
+  color: #d8e7e8 !important;
+}
+
+.p-select-option.p-focus,
+.p-select-option.p-select-option-selected {
+  background: rgba(218, 123, 147, 0.16) !important;
+  color: #ffffff !important;
+}
+
 .p-button {
   border-radius: 14px;
   font-weight: 700;

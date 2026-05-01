@@ -163,12 +163,47 @@ export const useSupabase = () => {
       return data;
     },
 
+    async createStand(standData) {
+      const { data, error } = await supabase
+        .from("stands")
+        .insert([standData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async deleteStand(standId) {
+      const { data, error } = await supabase
+        .from("stands")
+        .delete()
+        .eq("id", standId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
     async getStandById(standId) {
       const { data, error } = await supabase
         .from("stands")
         .select("*")
         .eq("id", standId)
         .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async getStandByNameAndType(name, type) {
+      const { data, error } = await supabase
+        .from("stands")
+        .select("*")
+        .eq("name", name)
+        .eq("type", type)
+        .maybeSingle();
 
       if (error) throw error;
       return data;
